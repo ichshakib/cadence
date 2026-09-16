@@ -1,6 +1,7 @@
 {
   "name": "cadence",
-  "displayName": "Cadence - YouTube Transcript & Subtitles",
+  "displayName": "Cadence - YouTube Transcript & Bilingual Subtitles",
+  "description": "Instant YouTube transcript extraction, bilingual translation, search, and synchronized playback.",
   "type": "module",
   "version": "1.0.0",
   "private": true,
