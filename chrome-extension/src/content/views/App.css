@@ -1,56 +1,726 @@
-.popup-container {
-  position: fixed;
-  right: 0;
-  bottom: 0;
-  margin: 1.25rem;
-  z-index: 100;
-  display: flex;
-  align-items: flex-end;
-  font-family: ui-sans-serif, system-ui, sans-serif;
-  user-select: none;
-  line-height: 1em;
+/* Base Container - Defaults to YouTube Light Mode */
+.yt-playlist-top-banner,
+.yt-playlist-top-banner[data-theme="light"] {
+  --banner-bg: #ffffff;
+  --banner-border: rgba(0, 0, 0, 0.1);
+  --banner-border-hover: rgba(0, 0, 0, 0.2);
+  --banner-text-primary: #0f0f0f;
+  --banner-text-secondary: #606060;
+  --banner-accent: #065fd4;
+  --banner-accent-hover: #0550b3;
+  --banner-accent-subtle: rgba(6, 95, 212, 0.08);
+  --banner-active-line-bg: rgba(0, 0, 0, 0.05);
+  --banner-item-hover: rgba(0, 0, 0, 0.04);
+  --banner-chip-bg: rgba(0, 0, 0, 0.05);
+  --banner-chip-hover: rgba(0, 0, 0, 0.1);
+  --banner-icon-hover: rgba(0, 0, 0, 0.08);
+  --banner-input-bg: rgba(0, 0, 0, 0.04);
+  --banner-input-border: rgba(0, 0, 0, 0.12);
+  --banner-scrollbar-thumb: rgba(0, 0, 0, 0.25);
+  --banner-danger: #cc0000;
+  --banner-danger-subtle: rgba(204, 0, 0, 0.1);
+
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0 0 16px 0;
+  padding: 12px 16px;
+  background: var(--banner-bg);
+  border: 1px solid var(--banner-border);
+  border-radius: 12px;
+  box-shadow: none; /* YouTube cards do not use heavy shadows */
+  color: var(--banner-text-primary);
+  font-family: 'YouTube Sans', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  display: block;
 }
 
-.popup-content {
-  background-color: white;
-  color: #1f2937;
-  border-radius: 0.5rem;
-  box-shadow:
-    0 4px 6px -1px rgb(0 0 0 / 0.1),
-    0 2px 4px -2px rgb(0 0 0 / 0.1);
-  width: max-content;
-  height: min-content;
-  padding: 0.5rem 1rem;
-  margin: auto 0.5rem 0 0;
-  transition: opacity 300ms;
+.yt-playlist-top-banner:hover {
+  border-color: var(--banner-border-hover);
 }
 
-.toggle-button {
+/* YouTube Dark Theme */
+.yt-playlist-top-banner[data-theme="dark"],
+html[dark] .yt-playlist-top-banner:not([data-theme="light"]),
+ytd-app[dark] .yt-playlist-top-banner:not([data-theme="light"]) {
+  --banner-bg: #212121;
+  --banner-border: rgba(255, 255, 255, 0.2);
+  --banner-border-hover: rgba(255, 255, 255, 0.35);
+  --banner-text-primary: #f1f1f1;
+  --banner-text-secondary: #aaaaaa;
+  --banner-accent: #3ea6ff;
+  --banner-accent-hover: #70baff;
+  --banner-accent-subtle: rgba(62, 166, 255, 0.15);
+  --banner-active-line-bg: rgba(255, 255, 255, 0.1);
+  --banner-item-hover: rgba(255, 255, 255, 0.06);
+  --banner-chip-bg: rgba(255, 255, 255, 0.1);
+  --banner-chip-hover: rgba(255, 255, 255, 0.18);
+  --banner-icon-hover: rgba(255, 255, 255, 0.12);
+  --banner-input-bg: rgba(255, 255, 255, 0.08);
+  --banner-input-border: rgba(255, 255, 255, 0.18);
+  --banner-scrollbar-thumb: rgba(255, 255, 255, 0.25);
+  --banner-danger: #ff4e45;
+  --banner-danger-subtle: rgba(255, 78, 69, 0.15);
+}
+
+/* Transcript Container */
+.yt-transcript-container {
   display: flex;
-  justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 9999px;
-  box-shadow:
-    0 1px 3px 0 rgb(0 0 0 / 0.1),
-    0 1px 2px -1px rgb(0 0 0 / 0.1);
-  cursor: pointer;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  transition: all 0.2s ease;
+}
+
+.yt-transcript-container.dragging {
+  outline: 2px dashed var(--banner-accent);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
+/* Header */
+.yt-transcript-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.yt-transcript-header-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 32px;
+}
+
+.yt-transcript-title-area {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.yt-transcript-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 22px;
+  color: var(--banner-text-primary);
+  white-space: nowrap;
+  letter-spacing: 0.1px;
+}
+
+.yt-transcript-count-badge {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--banner-text-secondary);
+  white-space: nowrap;
+}
+
+.yt-transcript-filename-badge {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--banner-text-secondary);
+  background: var(--banner-chip-bg);
+  padding: 2px 8px;
+  border-radius: 10px;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.yt-transcript-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* Native YouTube Icon Button Style */
+.yt-transcript-icon-btn {
+  background: transparent;
   border: none;
-  background-color: #288cd7;
+  color: var(--banner-text-secondary);
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  padding: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  user-select: none;
+  outline: none;
+  box-sizing: border-box;
 }
 
-.toggle-button:hover {
-  background-color: #1e6aa3;
+@keyframes yt-icon-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-.button-icon {
-  padding: 4px;
+.yt-icon-spin {
+  animation: yt-icon-spin 1s linear infinite;
 }
 
-.opacity-100 {
-  opacity: 1;
+.yt-transcript-icon-btn:hover {
+  color: var(--banner-text-primary);
+  background: var(--banner-icon-hover);
 }
 
-.opacity-0 {
+.yt-transcript-icon-btn.active {
+  background: var(--banner-accent-subtle);
+  color: var(--banner-accent);
+}
+
+.yt-transcript-icon-btn.copied {
+  color: #2ba640;
+  background: rgba(43, 166, 64, 0.12);
+}
+
+.yt-transcript-icon-btn.yt-transcript-btn-danger:hover {
+  color: var(--banner-danger);
+  background: var(--banner-danger-subtle);
+}
+
+/* Target Language Select (YouTube Chip Style) */
+.yt-transcript-lang-select {
+  height: 28px;
+  background: var(--banner-chip-bg);
+  border: 1px solid transparent;
+  color: var(--banner-text-primary);
+  border-radius: 14px;
+  padding: 0 8px 0 10px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.yt-transcript-lang-select:hover {
+  background: var(--banner-chip-hover);
+}
+
+.yt-transcript-lang-select:focus {
+  border-color: var(--banner-accent);
+}
+
+.yt-transcript-lang-select option {
+  background: var(--banner-bg);
+  color: var(--banner-text-primary);
+}
+
+/* Search Bar (YouTube Pill Input) */
+.yt-transcript-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin-top: 2px;
+}
+
+.yt-transcript-search-icon {
+  position: absolute;
+  left: 10px;
+  color: var(--banner-text-secondary);
+  pointer-events: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.yt-transcript-search-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 7px 32px 7px 32px;
+  font-size: 13px;
+  background: var(--banner-input-bg);
+  border: 1px solid var(--banner-input-border);
+  border-radius: 18px;
+  color: var(--banner-text-primary);
+  outline: none;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+  font-family: inherit;
+}
+
+.yt-transcript-search-input:focus {
+  border-color: var(--banner-accent);
+  background: var(--banner-bg);
+}
+
+.yt-transcript-search-input::placeholder {
+  color: var(--banner-text-secondary);
+  opacity: 0.85;
+}
+
+.yt-transcript-search-clear {
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--banner-text-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px;
+  border-radius: 50%;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.yt-transcript-search-clear:hover {
+  color: var(--banner-text-primary);
+  background: var(--banner-icon-hover);
+}
+
+/* Dropzone / Empty State */
+.yt-transcript-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px 16px;
+  border: 1.5px dashed var(--banner-input-border);
+  border-radius: 12px;
+  background: var(--banner-input-bg);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.yt-transcript-dropzone:hover {
+  border-color: var(--banner-accent);
+  background: var(--banner-accent-subtle);
+}
+
+.yt-dropzone-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--banner-accent);
+  margin-bottom: 8px;
+}
+
+.yt-dropzone-primary-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--banner-text-primary);
+  margin-bottom: 4px;
+}
+
+.yt-dropzone-sub-text {
+  font-size: 12px;
+  color: var(--banner-text-secondary);
+  margin-bottom: 14px;
+}
+
+.yt-dropzone-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* YouTube Pill Buttons */
+.yt-transcript-btn {
+  padding: 0 16px;
+  height: 36px;
+  border-radius: 18px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.yt-transcript-btn-primary {
+  background: var(--banner-accent);
+  color: #ffffff;
+  border: none;
+}
+
+.yt-transcript-btn-primary:hover {
+  background: var(--banner-accent-hover);
+}
+
+.yt-transcript-btn-secondary {
+  background: var(--banner-chip-bg);
+  color: var(--banner-text-primary);
+  border: none;
+}
+
+.yt-transcript-btn-secondary:hover {
+  background: var(--banner-chip-hover);
+}
+
+/* Paste Panel */
+.yt-transcript-paste-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  background: var(--banner-input-bg);
+  border: 1px solid var(--banner-input-border);
+  border-radius: 10px;
+  animation: yt-fade-in 0.15s ease-out;
+}
+
+@keyframes yt-fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.yt-transcript-paste-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.yt-transcript-paste-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--banner-text-primary);
+}
+
+.yt-transcript-paste-subtitle {
+  font-size: 11.5px;
+  color: var(--banner-text-secondary);
+}
+
+.yt-transcript-paste-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 12px;
+  font-size: 12.5px;
+  font-family: inherit;
+  line-height: 1.45;
+  border-radius: 8px;
+  border: 1px solid var(--banner-input-border);
+  background: var(--banner-bg);
+  color: var(--banner-text-primary);
+  resize: vertical;
+  min-height: 100px;
+  max-height: 250px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.yt-transcript-paste-textarea:focus {
+  border-color: var(--banner-accent);
+}
+
+.yt-transcript-paste-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.yt-transcript-error-badge {
+  font-size: 12px;
+  color: var(--banner-danger);
+  background: var(--banner-danger-subtle);
+  border: 1px solid var(--banner-danger);
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+
+/* Body & List */
+.yt-transcript-body {
+  max-height: 280px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--banner-scrollbar-thumb) transparent;
+}
+
+.yt-transcript-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.yt-transcript-body::-webkit-scrollbar-thumb {
+  background-color: var(--banner-scrollbar-thumb);
+  border-radius: 3px;
+}
+
+.yt-transcript-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.yt-transcript-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  position: relative;
+}
+
+.yt-transcript-item:hover {
+  background-color: var(--banner-item-hover);
+}
+
+.yt-transcript-item.active {
+  background-color: var(--banner-active-line-bg);
+}
+
+.yt-transcript-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  border-radius: 2px;
+  background-color: var(--banner-accent);
+}
+
+/* Timestamps (YouTube Native Blue Style) */
+.yt-transcript-timestamp {
+  background: var(--banner-accent-subtle);
+  color: var(--banner-accent);
+  border: none;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-top: 1px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.yt-transcript-timestamp:hover {
+  background: var(--banner-accent);
+  color: #ffffff;
+  text-decoration: none;
+}
+
+/* Bilingual Dual-Row Display */
+.yt-transcript-content-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.yt-transcript-row-original {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--banner-text-primary);
+  word-break: break-word;
+  font-weight: 400;
+}
+
+.yt-transcript-item.active .yt-transcript-row-original {
+  font-weight: 500;
+}
+
+.yt-transcript-row-translation {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--banner-text-secondary);
+  word-break: break-word;
+  padding: 1px 0;
+}
+
+.yt-transcript-arrow {
+  color: var(--banner-accent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.yt-transcript-translation-text {
+  color: var(--banner-text-secondary);
+}
+
+.yt-playlist-top-banner[data-theme="dark"] .yt-transcript-translation-text,
+html[dark] .yt-playlist-top-banner:not([data-theme="light"]) .yt-transcript-translation-text {
+  color: #b0b0b0;
+}
+
+.yt-transcript-status-msg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px 8px;
+  text-align: center;
+  color: var(--banner-text-secondary);
+  font-size: 13px;
+}
+
+.yt-transcript-highlight {
+  background-color: rgba(255, 214, 0, 0.4);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 2px;
+}
+
+.yt-playlist-top-banner[data-theme="dark"] .yt-transcript-highlight,
+html[dark] .yt-playlist-top-banner:not([data-theme="light"]) .yt-transcript-highlight {
+  background-color: rgba(255, 214, 0, 0.3);
+  color: #fff;
+}
+
+/* Hide injection container when empty (panel is closed) */
+#yt-playlist-top-injected:empty {
+  display: none !important;
+}
+
+/* YouTube Under-Video Action Button (Matches Like/Dislike, Share, Download) */
+#yt-transcript-action-btn-injected {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 8px;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.yt-transcript-action-btn-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.yt-transcript-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 18px;
+  border: none;
+  outline: none;
+  font-family: 'YouTube Sans', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 36px;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  box-sizing: border-box;
+  transition: background-color 0.15s cubic-bezier(0.05, 0, 0, 1), transform 0.1s ease;
+  
+  /* Defaults to YouTube Light Mode */
+  background: rgba(0, 0, 0, 0.05);
+  color: #0f0f0f;
+}
+
+.yt-transcript-action-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.yt-transcript-action-btn:active {
+  background: rgba(0, 0, 0, 0.15);
+  transform: scale(0.98);
+}
+
+/* Active / Toggled state when transcript is open */
+.yt-transcript-action-btn.active {
+  background: rgba(0, 0, 0, 0.1);
+  color: var(--banner-accent, #065fd4);
+}
+
+/* YouTube Dark Theme */
+.yt-transcript-action-btn[data-theme="dark"],
+html[dark] .yt-transcript-action-btn:not([data-theme="light"]),
+ytd-app[dark] .yt-transcript-action-btn:not([data-theme="light"]) {
+  background: rgba(255, 255, 255, 0.1);
+  color: #f1f1f1;
+}
+
+.yt-transcript-action-btn[data-theme="dark"]:hover,
+html[dark] .yt-transcript-action-btn:not([data-theme="light"]):hover,
+ytd-app[dark] .yt-transcript-action-btn:not([data-theme="light"]):hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.yt-transcript-action-btn[data-theme="dark"]:active,
+html[dark] .yt-transcript-action-btn:not([data-theme="light"]):active,
+ytd-app[dark] .yt-transcript-action-btn:not([data-theme="light"]):active {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(0.98);
+}
+
+.yt-transcript-action-btn[data-theme="dark"].active,
+html[dark] .yt-transcript-action-btn.active:not([data-theme="light"]),
+ytd-app[dark] .yt-transcript-action-btn.active:not([data-theme="light"]) {
+  background: rgba(255, 255, 255, 0.2);
+  color: var(--banner-accent, #3ea6ff);
+}
+
+.yt-transcript-action-btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.yt-transcript-action-btn-label {
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.1px;
+}
+
+/* YouTube Native Tooltip (Matches "I like this", "Share", "Download" tooltips) */
+.yt-transcript-native-tooltip {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-2px);
+  background-color: #616161;
+  color: #ffffff;
+  font-family: Roboto, Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  padding: 6px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 10000;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+  transition-delay: 0s;
 }
+
+.yt-transcript-action-btn-container:hover .yt-transcript-native-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+  transition-delay: 0.25s;
+}
+
+
