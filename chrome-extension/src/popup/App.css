@@ -1,45 +1,238 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+/* Cadence Popup Styles */
+:root {
+  --cad-bg: #0f172a;
+  --cad-card: #1e293b;
+  --cad-card-hover: #273549;
+  --cad-border: rgba(255, 255, 255, 0.08);
+  --cad-text-primary: #f8fafc;
+  --cad-text-secondary: #94a3b8;
+  --cad-accent: #38bdf8;
+  --cad-accent-hover: #0ea5e9;
+  --cad-accent-subtle: rgba(56, 189, 248, 0.12);
+  --cad-success: #10b981;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-.logo.crx:hover {
-  filter: drop-shadow(0 0 2em #f2bae4aa);
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--cad-bg);
+  color: var(--cad-text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  width: 340px;
+  overflow-x: hidden;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.cadence-popup-root {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.cadence-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background: linear-gradient(180deg, #1e293b 0%, rgba(30, 41, 59, 0.6) 100%);
+  border-bottom: 1px solid var(--cad-border);
 }
 
-.card {
-  padding: 2em;
+.cadence-logo-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.read-the-docs {
-  color: #888;
+.cadence-icon-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #0284c7, #38bdf8);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+}
+
+.cadence-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--cad-text-primary);
+}
+
+.cadence-subtitle {
+  margin: 1px 0 0 0;
+  font-size: 11px;
+  color: var(--cad-text-secondary);
+}
+
+.cadence-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  background: rgba(148, 163, 184, 0.15);
+  color: var(--cad-text-secondary);
+  border: 1px solid var(--cad-border);
+}
+
+.cadence-status-pill.active {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--cad-success);
+  border-color: rgba(16, 185, 129, 0.25);
+}
+
+.cadence-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: currentColor;
+}
+
+.cadence-body {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cadence-notice {
+  background: var(--cad-card);
+  border: 1px solid var(--cad-border);
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--cad-text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cadence-notice p {
+  margin: 0;
+}
+
+.cadence-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s ease;
+}
+
+.cadence-action-btn.primary {
+  background: var(--cad-accent);
+  color: #0f172a;
+}
+
+.cadence-action-btn.primary:hover {
+  background: var(--cad-accent-hover);
+}
+
+.cadence-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cadence-section-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cad-text-primary);
+}
+
+.cadence-select {
+  width: 100%;
+  padding: 7px 10px;
+  background: var(--cad-card);
+  border: 1px solid var(--cad-border);
+  border-radius: 8px;
+  color: var(--cad-text-primary);
+  font-size: 12px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.cadence-select:focus {
+  border-color: var(--cad-accent);
+}
+
+.cadence-features {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba(30, 41, 59, 0.4);
+  border: 1px solid var(--cad-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.cadence-feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.cadence-feat-icon {
+  flex-shrink: 0;
+  color: var(--cad-accent);
+  margin-top: 1px;
+}
+
+.cadence-feature-item strong {
+  display: block;
+  font-size: 11.5px;
+  color: var(--cad-text-primary);
+  margin-bottom: 1px;
+}
+
+.cadence-feature-item p {
+  margin: 0;
+  color: var(--cad-text-secondary);
+}
+
+.cadence-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  font-size: 11px;
+  color: var(--cad-text-secondary);
+  border-top: 1px solid var(--cad-border);
+  background: rgba(15, 23, 42, 0.8);
+}
+
+.cadence-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: var(--cad-accent);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.cadence-link-btn:hover {
+  text-decoration: underline;
 }
