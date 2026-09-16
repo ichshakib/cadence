@@ -20,15 +20,19 @@ export default function TranscriptActionButton() {
     }
   }, [])
 
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
     const nextState = !isOpen
     setIsOpen(nextState)
-    setPanelOpen(nextState)
 
     if (nextState) {
       // Guarantee panel is injected and mounted in visible container
       ensurePanelInjected()
+    }
+    setPanelOpen(nextState)
 
+    if (nextState) {
       // If opening, smooth scroll to the transcript panel in the right column
       window.setTimeout(() => {
         const panel = document.getElementById('yt-playlist-top-injected')

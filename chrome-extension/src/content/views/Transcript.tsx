@@ -18,7 +18,7 @@ import {
   Search,
   Sparkles,
 } from 'lucide-react'
-import type { TranscriptData } from '../types.ts'
+import type { TranscriptData, TranscriptSegment } from '../types.ts'
 import {
   parseTranscriptContent,
   seekVideo,
@@ -28,6 +28,8 @@ import {
   clearStoredTranscript,
   translateSegments,
   fetchYouTubeCaptions,
+  extractFromNativeTranscript,
+  fetchSegmentsFromTrackUrl,
   SUPPORTED_LANGUAGES,
   getStoredTargetLanguage,
   saveStoredTargetLanguage,
@@ -49,7 +51,7 @@ export default function Transcript() {
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false)
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied'>('idle')
   const [isDragging, setIsDragging] = useState<boolean>(false)
-  const [isAutoFetching, setIsAutoFetching] = useState<boolean>(false)
+  const [isFetching, setIsFetching] = useState<boolean>(false)
   const [fetchError, setFetchError] = useState<string | null>(null)
 
   // Translation state
@@ -87,8 +89,6 @@ export default function Transcript() {
           }
         } else {
           setTranscriptData(null)
-          // Silent background attempt for newly navigated video
-          trySilentAutoFetch(id)
         }
       }
     }
@@ -107,22 +107,6 @@ export default function Transcript() {
     }
   }, [videoId])
 
-  // Silent attempt on navigation (does not show aggressive red error if captions are simply not available)
-  const trySilentAutoFetch = async (idToFetch: string) => {
-    if (!idToFetch || isAutoFetching) return
-    setIsAutoFetching(true)
-    try {
-      const data = await fetchYouTubeCaptions(idToFetch)
-      if (data && data.segments.length > 0) {
-        setTranscriptData(data)
-      }
-    } catch {
-      // Silent in background
-    } finally {
-      setIsAutoFetching(false)
-    }
-  }
-
   // Explicit user-triggered fetch with full error reporting
   const handleManualFetch = async () => {
     const id = videoId || getCurrentVideoId()
@@ -130,7 +114,7 @@ export default function Transcript() {
       setFetchError('No YouTube video ID detected. Please ensure you are on a YouTube watch page.')
       return
     }
-    setIsAutoFetching(true)
+    setIsFetching(true)
     setFetchError(null)
     setParseError(null)
     try {
@@ -144,16 +128,77 @@ export default function Transcript() {
     } catch (err: any) {
       setFetchError(err.message || 'Failed to fetch YouTube subtitles.')
     } finally {
-      setIsAutoFetching(false)
+      setIsFetching(false)
     }
   }
 
-  // Auto-fetch on initial mount if empty
-  useEffect(() => {
-    if (!transcriptData && videoId) {
-      trySilentAutoFetch(videoId)
+  // Switch between available transcript / caption tracks
+  const handleTrackChange = async (trackId: string) => {
+    const id = videoId || getCurrentVideoId()
+    if (!id || !transcriptData) return
+    setIsFetching(true)
+    setFetchError(null)
+    setTranslateError(null)
+    try {
+      if (trackId === 'native') {
+        const nativeSegs = await extractFromNativeTranscript()
+        if (nativeSegs && nativeSegs.length > 0) {
+          const updated: TranscriptData = {
+            ...transcriptData,
+            segments: nativeSegs,
+            originalSegments: nativeSegs.map((s: TranscriptSegment) => ({ ...s })),
+            selectedTrackId: 'native',
+            fileName: 'YouTube Native Subtitles',
+          }
+          setTranscriptData(updated)
+          saveTranscript(id, updated)
+          return
+        }
+      }
+
+      const track = transcriptData.availableTracks?.find((t) => t.id === trackId)
+      if (track?.baseUrl) {
+        const segs = await fetchSegmentsFromTrackUrl(track.baseUrl)
+        if (segs && segs.length > 0) {
+          const updated: TranscriptData = {
+            ...transcriptData,
+            title: `${transcriptData.title?.split(' (')[0] || 'YouTube Transcript'} (${track.name})`,
+            segments: segs,
+            originalSegments: segs.map((s: TranscriptSegment) => ({ ...s })),
+            fileName: track.name,
+            selectedTrackId: track.id,
+            detectedLanguage: track.languageCode,
+          }
+          setTranscriptData(updated)
+          saveTranscript(id, updated)
+          return
+        }
+      }
+
+      // If track has a specific language code, translate the original source lines directly to it
+      const baseSegs = transcriptData.originalSegments || transcriptData.segments
+      if (baseSegs.length > 0 && track?.languageCode) {
+        const res = await translateSegments(baseSegs, track.languageCode)
+        const updated: TranscriptData = {
+          ...transcriptData,
+          segments: res.translatedSegments.map((s) => ({
+            ...s,
+            text: s.translatedText || s.text,
+            translatedText: undefined,
+          })),
+          selectedTrackId: trackId,
+          fileName: track.name,
+        }
+        setTranscriptData(updated)
+        saveTranscript(id, updated)
+        return
+      }
+    } catch (err: any) {
+      setFetchError(err.message || 'Failed to switch transcript track.')
+    } finally {
+      setIsFetching(false)
     }
-  }, [videoId])
+  }
 
   // Track video playback time
   useEffect(() => {
@@ -340,19 +385,21 @@ export default function Transcript() {
     if (!transcriptData || segments.length === 0) return
     setIsTranslating(true)
     setTranslateError(null)
-    setTranslateProgress({ done: 0, total: segments.length })
+    const baseSegments = transcriptData.originalSegments || transcriptData.segments
+    setTranslateProgress({ done: 0, total: baseSegments.length })
 
     try {
       const res = await translateSegments(
-        segments,
+        baseSegments,
         langToUse,
-        undefined,
+        transcriptData.detectedLanguage,
         (done, total) => setTranslateProgress({ done, total })
       )
 
       const updated: TranscriptData = {
         ...transcriptData,
         segments: res.translatedSegments,
+        originalSegments: transcriptData.originalSegments || baseSegments.map((s: TranscriptSegment) => ({ ...s })),
         detectedLanguage: res.detectedSource,
         targetLanguage: langToUse,
         showTranslation: true,
@@ -390,7 +437,8 @@ export default function Transcript() {
     setTargetLang(newLang)
     saveStoredTargetLanguage(newLang)
 
-    if (hasTranslations && showTranslation) {
+    // Immediately translate and update displayed subtitles
+    if (transcriptData && segments.length > 0) {
       await performTranslation(newLang)
     }
   }
@@ -439,11 +487,26 @@ export default function Transcript() {
                 • {segments.length} lines
               </span>
             )}
-            {transcriptData?.fileName && (
+            {transcriptData?.availableTracks && transcriptData.availableTracks.length > 1 ? (
+              <select
+                className="yt-transcript-track-select"
+                value={transcriptData.selectedTrackId || (transcriptData.availableTracks[0]?.id ?? 'native')}
+                onChange={(e) => handleTrackChange(e.target.value)}
+                title="Select subtitle / transcript track"
+                aria-label="Select subtitle track"
+                disabled={isFetching}
+              >
+                {transcriptData.availableTracks.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+            ) : transcriptData?.fileName ? (
               <span className="yt-transcript-filename-badge" title={transcriptData.fileName}>
                 {transcriptData.fileName}
               </span>
-            )}
+            ) : null}
           </div>
 
           <div className="yt-transcript-header-controls">
@@ -455,10 +518,10 @@ export default function Transcript() {
                   className="yt-transcript-icon-btn"
                   title="Fetch YouTube Subtitles"
                   onClick={handleManualFetch}
-                  disabled={isAutoFetching}
+                  disabled={isFetching}
                   aria-label="Fetch YouTube Subtitles"
                 >
-                  <Sparkles size={16} className={isAutoFetching ? 'yt-icon-spin' : ''} />
+                  <Sparkles size={16} className={isFetching ? 'yt-icon-spin' : ''} />
                 </button>
 
                 <button
@@ -706,11 +769,11 @@ export default function Transcript() {
                 <UploadCloud size={32} />
               </div>
               <div className="yt-dropzone-primary-text">
-                {isAutoFetching ? 'Fetching YouTube captions...' : 'Load or paste transcript'}
+                {isFetching ? 'Fetching YouTube subtitles...' : 'Load or paste transcript'}
               </div>
               <div className="yt-dropzone-sub-text">
-                {isAutoFetching
-                  ? 'Attempting to load subtitles automatically from YouTube...'
+                {isFetching
+                  ? 'Extracting subtitles from YouTube...'
                   : 'Click to browse file or drag & drop here (.txt, .srt, .vtt, .json)'}
               </div>
               <div className="yt-dropzone-actions" onClick={(e) => e.stopPropagation()}>
@@ -718,10 +781,10 @@ export default function Transcript() {
                   type="button"
                   className="yt-transcript-btn yt-transcript-btn-primary"
                   onClick={handleManualFetch}
-                  disabled={isAutoFetching}
+                  disabled={isFetching}
                 >
-                  <Sparkles size={15} style={{ marginRight: 6 }} className={isAutoFetching ? 'yt-icon-spin' : ''} />
-                  {isAutoFetching ? 'Fetching...' : 'Fetch YouTube Subtitles'}
+                  <Sparkles size={15} style={{ marginRight: 6 }} className={isFetching ? 'yt-icon-spin' : ''} />
+                  {isFetching ? 'Fetching...' : 'Fetch YouTube Subtitles'}
                 </button>
                 <button
                   type="button"
