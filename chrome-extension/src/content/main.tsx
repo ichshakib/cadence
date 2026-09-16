@@ -1,64 +1,126 @@
 // Cadence - Content Script Main Entry Point
 import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
+import { createRoot, type Root } from 'react-dom/client'
 import App from './views/App.tsx'
 import TranscriptActionButton from './views/TranscriptActionButton.tsx'
 import type { TargetInsertion } from './types.ts'
+import { registerPanelInjector } from './panelState.ts'
 
 const PANEL_CONTAINER_ID = 'yt-playlist-top-injected'
 const ACTION_BTN_CONTAINER_ID = 'yt-transcript-action-btn-injected'
+
+let panelRoot: Root | null = null
+
+function isElementVisible(el: HTMLElement | null): boolean {
+  if (!el) return false
+  if (el.hasAttribute('hidden')) return false
+  if (el.getAttribute('aria-hidden') === 'true') return false
+  if (el.style.display === 'none') return false
+  try {
+    const style = window.getComputedStyle(el)
+    if (style.display === 'none' || style.visibility === 'hidden') return false
+  } catch {
+    // ignore
+  }
+  return el.offsetParent !== null || el.offsetWidth > 0 || el.offsetHeight > 0
+}
+
+function getFirstValidContentChild(parent: HTMLElement): HTMLElement | null {
+  for (const child of Array.from(parent.children) as HTMLElement[]) {
+    if (child.id === PANEL_CONTAINER_ID) continue
+    // If YouTube's collapsible panels container is currently hidden, don't insert inside it or target it
+    if (child.id === 'panels' && !isElementVisible(child)) continue
+    return child
+  }
+  return null
+}
 
 function getPanelInsertion(): TargetInsertion | null {
   // Only inject on watch pages or pages with a video player
   const isWatch = window.location.pathname.startsWith('/watch') || !!document.querySelector('video')
   if (!isWatch) return null
 
-  // Priority 1: Right on top of the playlist panel renderer
+  // Check if we are inside a genuinely visible playlist
+  const isPlaylistUrl = window.location.search.includes('list=')
   const playlistContainer = document.querySelector<HTMLElement>(
     'ytd-playlist-panel-renderer#playlist, #playlist.ytd-watch-flexy, #playlist.ytd-watch-grid, ytd-playlist-panel-renderer'
   )
-  if (playlistContainer && playlistContainer.parentElement) {
+
+  // Priority 1: If an active playlist is genuinely visible and URL has list=
+  if (
+    isPlaylistUrl &&
+    playlistContainer &&
+    isElementVisible(playlistContainer) &&
+    playlistContainer.parentElement &&
+    isElementVisible(playlistContainer.parentElement)
+  ) {
     return {
       parent: playlistContainer.parentElement,
       before: playlistContainer,
     }
   }
 
-  // Priority 2: At the top of #secondary-inner (right-hand column)
+  // Priority 2: Primary target on all standard YouTube watch pages - visible right-hand column (#secondary-inner)
   const secondaryInner = document.querySelector<HTMLElement>(
     '#secondary #secondary-inner, #secondary-inner'
   )
-  if (secondaryInner) {
+  if (secondaryInner && isElementVisible(secondaryInner)) {
     return {
       parent: secondaryInner,
-      before: secondaryInner.firstElementChild as HTMLElement | null,
+      before: getFirstValidContentChild(secondaryInner),
     }
   }
 
-  // Priority 3: Above #related or recommendations
+  // Priority 3: Above #related recommendations if visible
   const related = document.querySelector<HTMLElement>(
     '#related, ytd-watch-next-secondary-results-renderer'
   )
-  if (related && related.parentElement) {
+  if (related && related.parentElement && isElementVisible(related.parentElement)) {
     return {
       parent: related.parentElement,
       before: related,
     }
   }
 
-  // Priority 4: In general #secondary column
+  // Priority 4: In general #secondary column if visible
   const secondary = document.querySelector<HTMLElement>('#secondary')
-  if (secondary) {
+  if (secondary && isElementVisible(secondary)) {
     return {
       parent: secondary,
-      before: secondary.firstElementChild as HTMLElement | null,
+      before: getFirstValidContentChild(secondary),
+    }
+  }
+
+  // Priority 5: Responsive / Narrow screen / Theater mode fallback
+  // When screen width is < 1000px or #secondary is hidden, YouTube stacks content under the video in #primary
+  const below = document.querySelector<HTMLElement>('#primary #below, #below')
+  if (below && isElementVisible(below)) {
+    const comments = below.querySelector<HTMLElement>('#comments, ytd-comments')
+    if (comments) {
+      return {
+        parent: below,
+        before: comments,
+      }
+    }
+    return {
+      parent: below,
+      before: getFirstValidContentChild(below),
+    }
+  }
+
+  // Priority 6: Fallback to #primary
+  const primary = document.querySelector<HTMLElement>('#primary, #primary-inner')
+  if (primary && isElementVisible(primary)) {
+    return {
+      parent: primary,
+      before: primary.lastElementChild as HTMLElement | null,
     }
   }
 
   return null
 }
 
-function injectPanel(): boolean {
+export function injectPanel(): boolean {
   const target = getPanelInsertion()
   if (!target) {
     return false
@@ -66,14 +128,21 @@ function injectPanel(): boolean {
 
   const existing = document.getElementById(PANEL_CONTAINER_ID)
 
-  // If already mounted and in the correct spot
+  // If already mounted
   if (existing) {
-    if (existing.parentElement === target.parent && existing.nextElementSibling === target.before) {
+    const isParentVisible = isElementVisible(existing.parentElement)
+    if (isParentVisible && existing.parentElement === target.parent && existing.nextElementSibling === target.before) {
       return true
     }
-    // Reposition within target if moved during navigation
-    target.parent.insertBefore(existing, target.before)
-    return true
+    // Reposition within target if moved or parent was hidden
+    try {
+      target.parent.insertBefore(existing, target.before)
+      return true
+    } catch (err) {
+      console.warn('[Cadence] Repositioning panel failed, remounting:', err)
+      existing.remove()
+      panelRoot = null
+    }
   }
 
   // Create new mounting container
@@ -82,8 +151,8 @@ function injectPanel(): boolean {
   target.parent.insertBefore(container, target.before)
 
   try {
-    const root = createRoot(container)
-    root.render(
+    panelRoot = createRoot(container)
+    panelRoot.render(
       <StrictMode>
         <App width="100%" height="auto" />
       </StrictMode>
@@ -95,6 +164,7 @@ function injectPanel(): boolean {
     return false
   }
 }
+
 
 function getActionBtnInsertion(): TargetInsertion | null {
   const isWatch = window.location.pathname.startsWith('/watch') || !!document.querySelector('video')
@@ -197,6 +267,7 @@ function injectAll() {
 }
 
 function init() {
+  registerPanelInjector(injectPanel)
   injectAll()
 
   // YouTube SPA navigation events
@@ -219,8 +290,21 @@ function init() {
     const existingActionBtn = document.getElementById(ACTION_BTN_CONTAINER_ID)
     const targetActionBtn = getActionBtnInsertion()
 
-    const panelNeedsUpdate = !existingPanel || (targetPanel && (existingPanel.parentElement !== targetPanel.parent || existingPanel.nextElementSibling !== targetPanel.before))
-    const btnNeedsUpdate = !existingActionBtn || (targetActionBtn && (existingActionBtn.parentElement !== targetActionBtn.parent || existingActionBtn.nextElementSibling !== targetActionBtn.before))
+    const isPanelParentVisible = existingPanel ? isElementVisible(existingPanel.parentElement) : false
+    const panelNeedsUpdate =
+      !existingPanel ||
+      !isPanelParentVisible ||
+      (targetPanel &&
+        (existingPanel.parentElement !== targetPanel.parent ||
+          existingPanel.nextElementSibling !== targetPanel.before))
+
+    const isBtnParentVisible = existingActionBtn ? isElementVisible(existingActionBtn.parentElement) : false
+    const btnNeedsUpdate =
+      !existingActionBtn ||
+      !isBtnParentVisible ||
+      (targetActionBtn &&
+        (existingActionBtn.parentElement !== targetActionBtn.parent ||
+          existingActionBtn.nextElementSibling !== targetActionBtn.before))
 
     if (panelNeedsUpdate || btnNeedsUpdate) {
       if (debounceTimer) clearTimeout(debounceTimer)

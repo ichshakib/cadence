@@ -676,9 +676,22 @@ html[dark] .yt-playlist-top-banner:not([data-theme="light"]) .yt-transcript-high
   color: #fff;
 }
 
-/* Hide injection container when empty (panel is closed) */
+/* Mount Container for Cadence Transcript Injected in YouTube Sidebar */
+#yt-playlist-top-injected {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 10;
+}
+
 #yt-playlist-top-injected:empty {
   display: none !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
 }
 
 /* YouTube Under-Video Action Button (Matches Like/Dislike, Share, Download) */

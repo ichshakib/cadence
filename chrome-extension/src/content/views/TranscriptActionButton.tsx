@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Captions } from 'lucide-react'
 import { useYouTubeTheme } from '../hooks/useYouTubeTheme.ts'
-import { isPanelOpen, setPanelOpen } from '../panelState.ts'
+import { isPanelOpen, setPanelOpen, ensurePanelInjected } from '../panelState.ts'
 
 export default function TranscriptActionButton() {
   const theme = useYouTubeTheme()
@@ -26,6 +26,9 @@ export default function TranscriptActionButton() {
     setPanelOpen(nextState)
 
     if (nextState) {
+      // Guarantee panel is injected and mounted in visible container
+      ensurePanelInjected()
+
       // If opening, smooth scroll to the transcript panel in the right column
       window.setTimeout(() => {
         const panel = document.getElementById('yt-playlist-top-injected')
@@ -33,14 +36,16 @@ export default function TranscriptActionButton() {
           panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
           const banner = panel.querySelector<HTMLElement>('.yt-playlist-top-banner')
           if (banner) {
-            banner.style.transition = 'border-color 0.3s ease'
+            banner.style.transition = 'border-color 0.3s ease, box-shadow 0.3s ease'
             banner.style.borderColor = 'var(--banner-accent, #065fd4)'
+            banner.style.boxShadow = '0 0 0 2px var(--banner-accent-subtle, rgba(6, 95, 212, 0.2))'
             window.setTimeout(() => {
               banner.style.borderColor = ''
+              banner.style.boxShadow = ''
             }, 1500)
           }
         }
-      }, 50)
+      }, 60)
     }
   }
 
