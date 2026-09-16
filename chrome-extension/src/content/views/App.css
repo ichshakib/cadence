@@ -90,6 +90,8 @@ ytd-app[dark] .yt-playlist-top-banner:not([data-theme="light"]) {
   justify-content: space-between;
   gap: 8px;
   min-height: 32px;
+  flex-wrap: wrap;
+  row-gap: 8px;
 }
 
 .yt-transcript-title-area {
@@ -97,6 +99,7 @@ ytd-app[dark] .yt-playlist-top-banner:not([data-theme="light"]) {
   align-items: center;
   gap: 6px;
   min-width: 0;
+  flex: 1 1 auto;
   overflow: hidden;
 }
 
@@ -134,7 +137,8 @@ ytd-app[dark] .yt-playlist-top-banner:not([data-theme="light"]) {
   display: flex;
   align-items: center;
   gap: 4px;
-  flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 /* Native YouTube Icon Button Style */
@@ -193,6 +197,7 @@ ytd-app[dark] .yt-playlist-top-banner:not([data-theme="light"]) {
 /* Target Language Select (YouTube Chip Style) */
 .yt-transcript-lang-select {
   height: 28px;
+  max-width: 140px;
   background: var(--banner-chip-bg);
   border: 1px solid transparent;
   color: var(--banner-text-primary);
@@ -205,6 +210,8 @@ ytd-app[dark] .yt-playlist-top-banner:not([data-theme="light"]) {
   transition: background-color 0.15s ease, border-color 0.15s ease;
   font-family: inherit;
   box-sizing: border-box;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .yt-transcript-lang-select:hover {
@@ -326,8 +333,11 @@ ytd-app[dark] .yt-playlist-top-banner:not([data-theme="light"]) {
 
 .yt-dropzone-actions {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
 }
 
 /* YouTube Pill Buttons */
@@ -722,5 +732,76 @@ ytd-app[dark] .yt-transcript-action-btn.active:not([data-theme="light"]) {
   transform: translateX(-50%) translateY(0);
   transition-delay: 0.25s;
 }
+
+/* -------------------------------------------------------------
+   Responsive Breakpoints & Media Queries
+   ------------------------------------------------------------- */
+
+/* Under-video button: collapse to icon-only on compact screens */
+@media (max-width: 1000px) {
+  .yt-transcript-action-btn {
+    padding: 0 10px;
+    min-width: 36px;
+  }
+  .yt-transcript-action-btn-label {
+    display: none;
+  }
+}
+
+/* Compact screens & narrow sidebars (<= 640px) */
+@media (max-width: 640px) {
+  .yt-playlist-top-banner {
+    padding: 10px 12px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+  }
+
+  .yt-transcript-title {
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .yt-transcript-filename-badge {
+    max-width: 80px;
+  }
+
+  .yt-transcript-lang-select {
+    max-width: 110px;
+    font-size: 11px;
+    height: 26px;
+  }
+
+  .yt-transcript-icon-btn {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+  }
+
+  .yt-transcript-dropzone {
+    padding: 16px 10px;
+  }
+
+  .yt-dropzone-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .yt-dropzone-actions .yt-transcript-btn {
+    width: 100%;
+    height: 34px;
+    font-size: 12px;
+  }
+
+  .yt-transcript-body {
+    max-height: 320px;
+  }
+}
+
+/* Theater Mode & Fullscreen Mode Adaptability */
+ytd-watch-flexy[theater] .yt-transcript-body,
+ytd-watch-flexy[fullscreen] .yt-transcript-body {
+  max-height: 380px;
+}
+
 
 
