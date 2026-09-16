@@ -32,6 +32,12 @@ export default defineManifest({
       js: ['src/content/main.tsx'],
       matches: ['https://*.youtube.com/*', 'https://youtube.com/*'],
     },
+    {
+      js: ['src/content/pageContext.ts'],
+      matches: ['https://*.youtube.com/*', 'https://youtube.com/*'],
+      world: 'MAIN',
+      run_at: 'document_start',
+    },
   ],
   side_panel: {
     default_path: 'src/sidepanel/index.html',
