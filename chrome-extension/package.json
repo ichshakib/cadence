@@ -1,5 +1,6 @@
 {
-  "name": "chrome-extension",
+  "name": "cadence",
+  "displayName": "Cadence - YouTube Transcript & Subtitles",
   "type": "module",
   "version": "1.0.0",
   "private": true,
@@ -9,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "lucide-react": "^1.46.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4"
   },

@@ -3,7 +3,8 @@ import pkg from './package.json'
 
 export default defineManifest({
   manifest_version: 3,
-  name: pkg.name,
+  name: 'Cadence - YouTube Transcript & Bilingual Subtitles',
+  description: 'Instant YouTube transcript extraction, bilingual translation, search, and synchronized playback.',
   version: pkg.version,
   icons: {
     48: 'public/logo.png',
@@ -17,11 +18,21 @@ export default defineManifest({
   permissions: [
     'sidePanel',
     'contentSettings',
+    'storage',
   ],
-  content_scripts: [{
-    js: ['src/content/main.tsx'],
-    matches: ['https://*/*'],
-  }],
+  host_permissions: [
+    'https://translate.googleapis.com/*',
+  ],
+  background: {
+    service_worker: 'src/background/index.ts',
+    type: 'module',
+  },
+  content_scripts: [
+    {
+      js: ['src/content/main.tsx'],
+      matches: ['https://*.youtube.com/*', 'https://youtube.com/*'],
+    },
+  ],
   side_panel: {
     default_path: 'src/sidepanel/index.html',
   },
