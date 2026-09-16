@@ -420,24 +420,144 @@ export function parseTranscriptContent(rawText: string, fileName?: string): Tran
 }
 
 /**
+ * Attempt to extract transcript from YouTube's native in-page transcript panel.
+ * If not already in DOM, programmatically triggers the "Show transcript" button,
+ * waits for YouTube to render the segments, extracts them, and auto-closes the native panel.
+ */
+export async function extractFromNativeTranscript(): Promise<TranscriptSegment[] | null> {
+  // Check if segments are already in the DOM
+  let segmentEls = Array.from(document.querySelectorAll<HTMLElement>('ytd-transcript-segment-renderer'))
+
+  if (segmentEls.length === 0) {
+    // 1. Check if description needs to be expanded first to expose the transcript button
+    const expandBtn = document.querySelector<HTMLButtonElement>(
+      '#expand, tp-yt-paper-button#expand, ytd-text-inline-expander #expand, #description #expand'
+    )
+    if (expandBtn && expandBtn.offsetParent !== null) {
+      expandBtn.click()
+      await new Promise((r) => setTimeout(r, 100))
+    }
+
+    // 2. Click the native "Show transcript" button
+    const transcriptBtn = document.querySelector<HTMLButtonElement>(
+      'ytd-video-description-transcript-section-renderer button, ' +
+      'ytd-video-description-infocards-section-renderer button, ' +
+      'button[aria-label*="transcript" i], ' +
+      'button[aria-label*="Transkript" i], ' +
+      '#structured-description ytd-video-description-transcript-section-renderer button'
+    )
+
+    if (transcriptBtn) {
+      transcriptBtn.click()
+    } else {
+      // 3. Fallback: Check the "..." overflow menu under the video
+      const moreBtn = document.querySelector<HTMLButtonElement>(
+        '#actions-inner ytd-menu-renderer button[aria-label*="More" i], ' +
+        '#top-level-buttons-computed + ytd-menu-renderer button, ' +
+        '#menu ytd-menu-renderer button[aria-label*="actions" i]'
+      )
+      if (moreBtn) {
+        moreBtn.click()
+        await new Promise((r) => setTimeout(r, 200))
+        const menuItems = Array.from(document.querySelectorAll<HTMLElement>('ytd-menu-service-item-renderer, tp-yt-paper-item'))
+        const transcriptItem = menuItems.find((item) =>
+          (item.textContent || '').toLowerCase().includes('transcript') ||
+          (item.textContent || '').toLowerCase().includes('transkript')
+        )
+        if (transcriptItem) {
+          transcriptItem.click()
+        }
+      }
+    }
+
+    // 4. Wait up to 3 seconds for YouTube to populate the transcript segments
+    const startTime = Date.now()
+    while (Date.now() - startTime < 3000) {
+      await new Promise((r) => setTimeout(r, 200))
+      segmentEls = Array.from(document.querySelectorAll<HTMLElement>('ytd-transcript-segment-renderer'))
+      if (segmentEls.length > 0) {
+        break
+      }
+    }
+  }
+
+  if (segmentEls.length > 0) {
+    const segments: TranscriptSegment[] = []
+    for (const el of segmentEls) {
+      const timeStr = el.querySelector('.segment-timestamp, [class*="timestamp"]')?.textContent?.trim() || ''
+      const textStr = el.querySelector('.segment-text, [class*="segment-text"]')?.textContent?.trim() || ''
+      if (!textStr) continue
+
+      const start = parseTimestampToSeconds(timeStr)
+      segments.push({
+        start,
+        dur: 4,
+        formattedTime: formatTimestamp(start),
+        text: cleanText(textStr),
+      })
+    }
+
+    if (segments.length > 0) {
+      for (let i = 0; i < segments.length - 1; i++) {
+        segments[i].dur = Math.max(1, segments[i + 1].start - segments[i].start)
+      }
+
+      // Hide/close YouTube's native transcript panel so it doesn't clutter the page
+      try {
+        const closeBtn = document.querySelector<HTMLButtonElement>(
+          'ytd-engagement-panel-section-list-renderer[target-id="engagement-panel-searchable-transcript"] #visibility-button, ' +
+          'ytd-engagement-panel-section-list-renderer[target-id="engagement-panel-searchable-transcript"] button[aria-label*="Close" i], ' +
+          'ytd-engagement-panel-section-list-renderer[target-id="engagement-panel-searchable-transcript"] #header #visibility-button'
+        )
+        if (closeBtn) {
+          closeBtn.click()
+        }
+      } catch {
+        // ignore close error
+      }
+
+      return segments
+    }
+  }
+
+  return null
+}
+
+/**
  * Fetch automatic captions from YouTube player data if available on the current page
  */
 export async function fetchYouTubeCaptions(videoId: string): Promise<TranscriptData> {
   if (!videoId) {
-    throw new Error('No YouTube video ID detected.')
+    throw new Error('No YouTube video ID detected. Please navigate to a video watch page.')
   }
 
+  // Priority 1: Extract from YouTube's native transcript renderer in the DOM
+  try {
+    const nativeSegments = await extractFromNativeTranscript()
+    if (nativeSegments && nativeSegments.length > 0) {
+      const videoTitle = document.querySelector('h1.ytd-watch-metadata yt-formatted-string, #title h1')?.textContent?.trim() || 'YouTube Transcript'
+      const result: TranscriptData = {
+        title: videoTitle,
+        segments: nativeSegments,
+        fileName: 'YouTube Native Transcript',
+      }
+      saveTranscript(videoId, result)
+      return result
+    }
+  } catch (err) {
+    console.debug('[Cadence] Native transcript extraction error:', err)
+  }
+
+  // Priority 2: Extract caption tracks from player metadata
   let captionTracks: any[] | null = null
   let videoTitle = ''
 
-  // Strategy 1: Check window.ytInitialPlayerResponse
   const win = window as any
   if (win.ytInitialPlayerResponse?.captions?.playerCaptionsTracklistRenderer?.captionTracks) {
     captionTracks = win.ytInitialPlayerResponse.captions.playerCaptionsTracklistRenderer.captionTracks
     videoTitle = win.ytInitialPlayerResponse.videoDetails?.title || ''
   }
 
-  // Strategy 2: Search DOM scripts for captionTracks regex
   if (!captionTracks || captionTracks.length === 0) {
     const scripts = Array.from(document.querySelectorAll('script'))
     for (const script of scripts) {
@@ -458,7 +578,6 @@ export async function fetchYouTubeCaptions(videoId: string): Promise<TranscriptD
     }
   }
 
-  // Strategy 3: Same-origin fetch of watch page HTML (guarantees fresh data across YouTube SPA navigation)
   if (!captionTracks || captionTracks.length === 0) {
     try {
       const res = await fetch(`https://www.youtube.com/watch?v=${videoId}`, { credentials: 'omit' })
@@ -484,61 +603,76 @@ export async function fetchYouTubeCaptions(videoId: string): Promise<TranscriptD
     throw new Error('This video has no subtitles or closed captions available on YouTube. You can upload an SRT/VTT file or paste the transcript text below.')
   }
 
-  // Prefer English track, or fallback to the first track
+  // Prefer English track, or fallback to first
   const track = captionTracks.find((t: any) => t.languageCode === 'en' || (t.vssId && t.vssId.includes('.en'))) || captionTracks[0]
   if (!track?.baseUrl) {
     throw new Error('No accessible subtitle URL was found for this video.')
   }
 
   const sep = track.baseUrl.includes('?') ? '&' : '?'
-  const response = await fetch(`${track.baseUrl}${sep}fmt=json3`)
-  if (!response.ok) {
-    throw new Error(`Failed to download subtitles from YouTube (HTTP ${response.status}).`)
-  }
+  let responseText = ''
 
-  const responseText = await response.text()
-  const segments: TranscriptSegment[] = []
-
-  // Try parsing JSON3 format
   try {
-    const data = JSON.parse(responseText)
-    if (Array.isArray(data.events)) {
-      for (const event of data.events) {
-        if (!Array.isArray(event.segs)) continue
-        const text = cleanText(event.segs.map((s: any) => s.utf8 || '').join(''))
-        if (!text) continue
-
-        const start = (event.tStartMs || 0) / 1000
-        const dur = (event.dDurationMs || 0) / 1000
-
-        segments.push({
-          start,
-          dur,
-          formattedTime: formatTimestamp(start),
-          text,
-        })
-      }
+    const response = await fetch(`${track.baseUrl}${sep}fmt=json3`)
+    if (response.ok) {
+      responseText = await response.text()
     }
   } catch {
-    // If not JSON, parse as XML (<text start=".." dur="..">..</text>)
-    const matches = [...responseText.matchAll(/<text\s+start="([\d.]+)"(?:\s+dur="([\d.]+)")?[^>]*>([\s\S]*?)<\/text>/gi)]
-    for (const m of matches) {
-      const start = parseFloat(m[1])
-      const dur = parseFloat(m[2] || '4')
-      const text = cleanText(m[3])
-      if (text) {
-        segments.push({
-          start,
-          dur,
-          formattedTime: formatTimestamp(start),
-          text,
-        })
+    // try without fmt=json3
+    try {
+      const response = await fetch(track.baseUrl)
+      if (response.ok) {
+        responseText = await response.text()
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  const segments: TranscriptSegment[] = []
+
+  if (responseText && responseText.trim().length > 0) {
+    // Try parsing JSON3 format
+    try {
+      const data = JSON.parse(responseText)
+      if (Array.isArray(data.events)) {
+        for (const event of data.events) {
+          if (!Array.isArray(event.segs)) continue
+          const text = cleanText(event.segs.map((s: any) => s.utf8 || '').join(''))
+          if (!text) continue
+
+          const start = (event.tStartMs || 0) / 1000
+          const dur = (event.dDurationMs || 0) / 1000
+
+          segments.push({
+            start,
+            dur,
+            formattedTime: formatTimestamp(start),
+            text,
+          })
+        }
+      }
+    } catch {
+      // XML parse fallback
+      const matches = [...responseText.matchAll(/<text\s+start="([\d.]+)"(?:\s+dur="([\d.]+)")?[^>]*>([\s\S]*?)<\/text>/gi)]
+      for (const m of matches) {
+        const start = parseFloat(m[1])
+        const dur = parseFloat(m[2] || '4')
+        const text = cleanText(m[3])
+        if (text) {
+          segments.push({
+            start,
+            dur,
+            formattedTime: formatTimestamp(start),
+            text,
+          })
+        }
       }
     }
   }
 
   if (segments.length === 0) {
-    throw new Error('The subtitle track was downloaded but contained no readable text lines.')
+    throw new Error('This video has no accessible closed captions or subtitles on YouTube. You can upload an SRT/VTT file or paste the transcript text below.')
   }
 
   const trackName = track.name?.simpleText || track.languageCode || 'YouTube Subtitles'
