@@ -422,79 +422,135 @@ export function parseTranscriptContent(rawText: string, fileName?: string): Tran
 /**
  * Fetch automatic captions from YouTube player data if available on the current page
  */
-export async function fetchYouTubeCaptions(videoId: string): Promise<TranscriptData | null> {
-  try {
-    // 1. Check window.ytInitialPlayerResponse
-    const win = window as any
-    let playerResponse = win.ytInitialPlayerResponse
+export async function fetchYouTubeCaptions(videoId: string): Promise<TranscriptData> {
+  if (!videoId) {
+    throw new Error('No YouTube video ID detected.')
+  }
 
-    // 2. Fallback: Search script tags for ytInitialPlayerResponse
-    if (!playerResponse) {
-      const scripts = Array.from(document.querySelectorAll('script'))
-      for (const script of scripts) {
-        const content = script.textContent || ''
-        if (content.includes('ytInitialPlayerResponse')) {
-          const match = content.match(/ytInitialPlayerResponse\s*=\s*({.+?});/)
-          if (match && match[1]) {
-            try {
-              playerResponse = JSON.parse(match[1])
-              break
-            } catch {
-              // continue
-            }
+  let captionTracks: any[] | null = null
+  let videoTitle = ''
+
+  // Strategy 1: Check window.ytInitialPlayerResponse
+  const win = window as any
+  if (win.ytInitialPlayerResponse?.captions?.playerCaptionsTracklistRenderer?.captionTracks) {
+    captionTracks = win.ytInitialPlayerResponse.captions.playerCaptionsTracklistRenderer.captionTracks
+    videoTitle = win.ytInitialPlayerResponse.videoDetails?.title || ''
+  }
+
+  // Strategy 2: Search DOM scripts for captionTracks regex
+  if (!captionTracks || captionTracks.length === 0) {
+    const scripts = Array.from(document.querySelectorAll('script'))
+    for (const script of scripts) {
+      const content = script.textContent || ''
+      if (content.includes('captionTracks')) {
+        const match = content.match(/"captionTracks":\s*(\[.*?\])(?:,"|\})/)
+        if (match && match[1]) {
+          try {
+            captionTracks = JSON.parse(match[1])
+            const titleMatch = content.match(/"title":\s*\{"simpleText":\s*"([^"]+)"\}/) || content.match(/"title":"([^"]+)"/)
+            if (titleMatch) videoTitle = titleMatch[1]
+            break
+          } catch {
+            // continue
           }
         }
       }
     }
-
-    const captionTracks = playerResponse?.captions?.playerCaptionsTracklistRenderer?.captionTracks
-    if (!Array.isArray(captionTracks) || captionTracks.length === 0) {
-      return null
-    }
-
-    // Pick English or first track
-    const track = captionTracks.find((t: any) => t.languageCode === 'en') || captionTracks[0]
-    if (!track?.baseUrl) return null
-
-    const response = await fetch(`${track.baseUrl}&fmt=json3`)
-    if (!response.ok) return null
-
-    const data = await response.json()
-    if (!Array.isArray(data.events)) return null
-
-    const segments: TranscriptSegment[] = []
-    for (const event of data.events) {
-      if (!Array.isArray(event.segs)) continue
-      const text = cleanText(event.segs.map((s: any) => s.utf8 || '').join(''))
-      if (!text) continue
-
-      const start = (event.tStartMs || 0) / 1000
-      const dur = (event.dDurationMs || 0) / 1000
-
-      segments.push({
-        start,
-        dur,
-        formattedTime: formatTimestamp(start),
-        text,
-      })
-    }
-
-    if (segments.length > 0) {
-      const trackName = track.name?.simpleText || track.languageCode || 'YouTube Subtitles'
-      const title = playerResponse?.videoDetails?.title || `${trackName} Subtitles`
-      const result: TranscriptData = {
-        title,
-        segments,
-        detectedLanguage: track.languageCode,
-        fileName: `${trackName} (YouTube Auto)`,
-      }
-      saveTranscript(videoId, result)
-      return result
-    }
-  } catch (err) {
-    console.debug('[Cadence] Could not auto-fetch YouTube captions:', err)
   }
-  return null
+
+  // Strategy 3: Same-origin fetch of watch page HTML (guarantees fresh data across YouTube SPA navigation)
+  if (!captionTracks || captionTracks.length === 0) {
+    try {
+      const res = await fetch(`https://www.youtube.com/watch?v=${videoId}`, { credentials: 'omit' })
+      if (res.ok) {
+        const html = await res.text()
+        const match = html.match(/"captionTracks":\s*(\[.*?\])(?:,"|\})/)
+        if (match && match[1]) {
+          try {
+            captionTracks = JSON.parse(match[1])
+            const titleMatch = html.match(/"title":\s*\{"simpleText":\s*"([^"]+)"\}/) || html.match(/"title":"([^"]+)"/)
+            if (titleMatch) videoTitle = titleMatch[1]
+          } catch {
+            // continue
+          }
+        }
+      }
+    } catch (err) {
+      console.debug('[Cadence] Watch HTML fetch failed:', err)
+    }
+  }
+
+  if (!captionTracks || !Array.isArray(captionTracks) || captionTracks.length === 0) {
+    throw new Error('This video has no subtitles or closed captions available on YouTube. You can upload an SRT/VTT file or paste the transcript text below.')
+  }
+
+  // Prefer English track, or fallback to the first track
+  const track = captionTracks.find((t: any) => t.languageCode === 'en' || (t.vssId && t.vssId.includes('.en'))) || captionTracks[0]
+  if (!track?.baseUrl) {
+    throw new Error('No accessible subtitle URL was found for this video.')
+  }
+
+  const sep = track.baseUrl.includes('?') ? '&' : '?'
+  const response = await fetch(`${track.baseUrl}${sep}fmt=json3`)
+  if (!response.ok) {
+    throw new Error(`Failed to download subtitles from YouTube (HTTP ${response.status}).`)
+  }
+
+  const responseText = await response.text()
+  const segments: TranscriptSegment[] = []
+
+  // Try parsing JSON3 format
+  try {
+    const data = JSON.parse(responseText)
+    if (Array.isArray(data.events)) {
+      for (const event of data.events) {
+        if (!Array.isArray(event.segs)) continue
+        const text = cleanText(event.segs.map((s: any) => s.utf8 || '').join(''))
+        if (!text) continue
+
+        const start = (event.tStartMs || 0) / 1000
+        const dur = (event.dDurationMs || 0) / 1000
+
+        segments.push({
+          start,
+          dur,
+          formattedTime: formatTimestamp(start),
+          text,
+        })
+      }
+    }
+  } catch {
+    // If not JSON, parse as XML (<text start=".." dur="..">..</text>)
+    const matches = [...responseText.matchAll(/<text\s+start="([\d.]+)"(?:\s+dur="([\d.]+)")?[^>]*>([\s\S]*?)<\/text>/gi)]
+    for (const m of matches) {
+      const start = parseFloat(m[1])
+      const dur = parseFloat(m[2] || '4')
+      const text = cleanText(m[3])
+      if (text) {
+        segments.push({
+          start,
+          dur,
+          formattedTime: formatTimestamp(start),
+          text,
+        })
+      }
+    }
+  }
+
+  if (segments.length === 0) {
+    throw new Error('The subtitle track was downloaded but contained no readable text lines.')
+  }
+
+  const trackName = track.name?.simpleText || track.languageCode || 'YouTube Subtitles'
+  const title = videoTitle || `${trackName} Subtitles`
+  const result: TranscriptData = {
+    title,
+    segments,
+    detectedLanguage: track.languageCode,
+    fileName: `${trackName} (YouTube Auto)`,
+  }
+  saveTranscript(videoId, result)
+  return result
 }
 
 // -------------------------------------------------------------

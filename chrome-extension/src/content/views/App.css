@@ -448,6 +448,81 @@ ytd-app[dark] .yt-playlist-top-banner:not([data-theme="light"]) {
   padding: 6px 10px;
 }
 
+.yt-error-dismiss-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  padding: 2px;
+  border-radius: 50%;
+  opacity: 0.8;
+  transition: opacity 0.15s ease;
+}
+
+.yt-error-dismiss-btn:hover {
+  opacity: 1;
+}
+
+/* Dedicated Callout Box for Empty State Errors */
+.yt-transcript-callout-error {
+  margin-top: 14px;
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--banner-danger-subtle);
+  border: 1px solid var(--banner-danger);
+  border-radius: 8px;
+  padding: 10px 12px;
+  text-align: left;
+  animation: yt-fade-in 0.15s ease-out;
+}
+
+.yt-callout-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  color: var(--banner-danger);
+  font-weight: 600;
+  font-size: 12.5px;
+  margin-bottom: 4px;
+}
+
+.yt-callout-icon {
+  flex-shrink: 0;
+}
+
+.yt-callout-title {
+  flex: 1;
+}
+
+.yt-callout-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--banner-danger);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border-radius: 50%;
+  opacity: 0.8;
+  transition: opacity 0.15s ease;
+}
+
+.yt-callout-close:hover {
+  opacity: 1;
+}
+
+.yt-callout-desc {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--banner-text-primary);
+  opacity: 0.9;
+}
+
 /* Body & List */
 .yt-transcript-body {
   max-height: 280px;

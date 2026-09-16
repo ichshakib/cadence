@@ -50,6 +50,7 @@ export default function Transcript() {
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied'>('idle')
   const [isDragging, setIsDragging] = useState<boolean>(false)
   const [isAutoFetching, setIsAutoFetching] = useState<boolean>(false)
+  const [fetchError, setFetchError] = useState<string | null>(null)
 
   // Translation state
   const [isTranslating, setIsTranslating] = useState<boolean>(false)
@@ -72,6 +73,12 @@ export default function Transcript() {
       const id = getCurrentVideoId()
       if (id && id !== videoId) {
         setVideoId(id)
+        setFetchError(null)
+        setParseError(null)
+        setTranslateError(null)
+        setIsPasteOpen(false)
+        setIsTranslating(false)
+
         const stored = loadStoredTranscript(id)
         if (stored) {
           setTranscriptData(stored)
@@ -80,13 +87,9 @@ export default function Transcript() {
           }
         } else {
           setTranscriptData(null)
-          // Attempt auto-fetching YouTube captions for newly navigated video
-          tryAutoFetch(id)
+          // Silent background attempt for newly navigated video
+          trySilentAutoFetch(id)
         }
-        setIsPasteOpen(false)
-        setParseError(null)
-        setTranslateError(null)
-        setIsTranslating(false)
       }
     }
 
@@ -104,7 +107,8 @@ export default function Transcript() {
     }
   }, [videoId])
 
-  const tryAutoFetch = async (idToFetch: string) => {
+  // Silent attempt on navigation (does not show aggressive red error if captions are simply not available)
+  const trySilentAutoFetch = async (idToFetch: string) => {
     if (!idToFetch || isAutoFetching) return
     setIsAutoFetching(true)
     try {
@@ -113,7 +117,32 @@ export default function Transcript() {
         setTranscriptData(data)
       }
     } catch {
-      // ignore
+      // Silent in background
+    } finally {
+      setIsAutoFetching(false)
+    }
+  }
+
+  // Explicit user-triggered fetch with full error reporting
+  const handleManualFetch = async () => {
+    const id = videoId || getCurrentVideoId()
+    if (!id) {
+      setFetchError('No YouTube video ID detected. Please ensure you are on a YouTube watch page.')
+      return
+    }
+    setIsAutoFetching(true)
+    setFetchError(null)
+    setParseError(null)
+    try {
+      const data = await fetchYouTubeCaptions(id)
+      if (data && data.segments.length > 0) {
+        setTranscriptData(data)
+        setFetchError(null)
+      } else {
+        setFetchError('No subtitles or captions found for this video. The creator might not have enabled closed captions. You can upload an SRT/VTT file or paste the transcript below.')
+      }
+    } catch (err: any) {
+      setFetchError(err.message || 'Failed to fetch YouTube subtitles.')
     } finally {
       setIsAutoFetching(false)
     }
@@ -122,7 +151,7 @@ export default function Transcript() {
   // Auto-fetch on initial mount if empty
   useEffect(() => {
     if (!transcriptData && videoId) {
-      tryAutoFetch(videoId)
+      trySilentAutoFetch(videoId)
     }
   }, [videoId])
 
@@ -282,6 +311,7 @@ export default function Transcript() {
     setSearchQuery('')
     setParseError(null)
     setTranslateError(null)
+    setFetchError(null)
   }
 
   const handleCopyTranscript = async () => {
@@ -423,10 +453,10 @@ export default function Transcript() {
                 <button
                   type="button"
                   className="yt-transcript-icon-btn"
-                  title="Auto-fetch YouTube Subtitles"
-                  onClick={() => tryAutoFetch(videoId)}
+                  title="Fetch YouTube Subtitles"
+                  onClick={handleManualFetch}
                   disabled={isAutoFetching}
-                  aria-label="Auto-fetch YouTube Subtitles"
+                  aria-label="Fetch YouTube Subtitles"
                 >
                   <Sparkles size={16} className={isAutoFetching ? 'yt-icon-spin' : ''} />
                 </button>
@@ -564,8 +594,26 @@ export default function Transcript() {
             </span>
             <button
               type="button"
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', display: 'inline-flex', alignItems: 'center', padding: 2 }}
+              className="yt-error-dismiss-btn"
               onClick={() => setTranslateError(null)}
+              aria-label="Dismiss error"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        )}
+
+        {/* Subtitle Fetch error message if fetch failed */}
+        {fetchError && (
+          <div className="yt-transcript-error-badge" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <AlertCircle size={14} />
+              <span>{fetchError}</span>
+            </span>
+            <button
+              type="button"
+              className="yt-error-dismiss-btn"
+              onClick={() => setFetchError(null)}
               aria-label="Dismiss error"
             >
               <X size={14} />
@@ -669,7 +717,7 @@ export default function Transcript() {
                 <button
                   type="button"
                   className="yt-transcript-btn yt-transcript-btn-primary"
-                  onClick={() => tryAutoFetch(videoId)}
+                  onClick={handleManualFetch}
                   disabled={isAutoFetching}
                 >
                   <Sparkles size={15} style={{ marginRight: 6 }} className={isAutoFetching ? 'yt-icon-spin' : ''} />
@@ -695,6 +743,25 @@ export default function Transcript() {
                   Paste
                 </button>
               </div>
+              {fetchError && (
+                <div className="yt-transcript-callout-error" onClick={(e) => e.stopPropagation()}>
+                  <div className="yt-callout-header">
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                      <AlertCircle size={15} className="yt-callout-icon" />
+                      <span className="yt-callout-title">Subtitles Unavailable</span>
+                    </span>
+                    <button
+                      type="button"
+                      className="yt-callout-close"
+                      onClick={() => setFetchError(null)}
+                      aria-label="Dismiss"
+                    >
+                      <X size={13} />
+                    </button>
+                  </div>
+                  <p className="yt-callout-desc">{fetchError}</p>
+                </div>
+              )}
               {parseError && (
                 <div className="yt-transcript-error-badge" style={{ marginTop: 8, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                   <AlertCircle size={14} />
