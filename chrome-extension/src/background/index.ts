@@ -1,7 +1,122 @@
 // Cadence - Background Service Worker
 // Handles batch translation requests via Google Translate GTX API without CORS issues
 
-chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  // Extract YouTube player response directly from MAIN world via chrome.scripting
+  if (request.action === 'GET_PLAYER_DATA') {
+    const tabId = sender.tab?.id
+    if (!tabId) {
+      sendResponse({ success: false, error: 'No active tab ID found' })
+      return false
+    }
+
+    chrome.scripting
+      .executeScript({
+        target: { tabId },
+        world: 'MAIN',
+        func: () => {
+          try {
+            const win = window as any
+            const player = document.getElementById('movie_player') as any
+            const playerResponse =
+              (typeof player?.getPlayerResponse === 'function' ? player.getPlayerResponse() : null) ||
+              win.ytInitialPlayerResponse ||
+              null
+
+            const captions = playerResponse?.captions?.playerCaptionsTracklistRenderer
+            let captionTracks = captions?.captionTracks || []
+            const translationLanguages = captions?.translationLanguages || []
+            const videoDetails = playerResponse?.videoDetails || {}
+
+            // If playerResponse captionTracks is missing, try player.getOption('captions', 'tracklist')
+            if ((!captionTracks || captionTracks.length === 0) && typeof player?.getOption === 'function') {
+              try {
+                const tracklist = player.getOption('captions', 'tracklist')
+                if (Array.isArray(tracklist) && tracklist.length > 0) {
+                  captionTracks = tracklist.map((t: any) => ({
+                    baseUrl: t.url || t.baseUrl,
+                    name: { simpleText: t.displayName || t.name || t.languageCode },
+                    vssId: t.vss_id || t.vssId,
+                    languageCode: t.languageCode || t.lang,
+                    kind: t.kind,
+                    isTranslatable: t.is_translatable ?? true,
+                  }))
+                }
+              } catch {}
+            }
+
+            return {
+              success: true,
+              captionTracks,
+              translationLanguages,
+              title: videoDetails.title || document.title,
+              videoId: videoDetails.videoId || '',
+            }
+          } catch (err: any) {
+            return {
+              success: false,
+              error: err?.message || String(err),
+            }
+          }
+        },
+      })
+      .then((results) => {
+        const result = results[0]?.result
+        if (result && result.success) {
+          sendResponse(result)
+        } else {
+          sendResponse({ success: false, error: result?.error || 'Failed to inspect player data' })
+        }
+      })
+      .catch((err) => {
+        sendResponse({ success: false, error: err.message })
+      })
+
+    return true
+  }
+
+  // Fetch timedtext within page's MAIN world session & cookies via chrome.scripting
+  if (request.action === 'FETCH_TIMEDTEXT') {
+    const tabId = sender.tab?.id
+    const url = request.url
+    if (!tabId || !url) {
+      sendResponse({ success: false, error: 'Missing tab ID or URL' })
+      return false
+    }
+
+    chrome.scripting
+      .executeScript({
+        target: { tabId },
+        world: 'MAIN',
+        args: [url],
+        func: async (trackUrl: string) => {
+          try {
+            const res = await fetch(trackUrl, { credentials: 'include' })
+            const text = await res.text()
+            return {
+              success: res.ok && text.length > 0,
+              status: res.status,
+              text,
+            }
+          } catch (err: any) {
+            return {
+              success: false,
+              error: err?.message || String(err),
+            }
+          }
+        },
+      })
+      .then((results) => {
+        const result = results[0]?.result
+        sendResponse(result || { success: false, error: 'No response from main world' })
+      })
+      .catch((err) => {
+        sendResponse({ success: false, error: err.message })
+      })
+
+    return true
+  }
+
   // Translates the entire transcript in a single HTTP request using batch delimiter
   if (request.action === 'TRANSLATE_ALL' || request.action === 'TRANSLATE_BATCH') {
     const { texts, sourceLang = 'auto', targetLang = 'en' } = request

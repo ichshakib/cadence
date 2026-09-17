@@ -25,9 +25,12 @@ export default defineManifest({
     'sidePanel',
     'contentSettings',
     'storage',
+    'scripting',
   ],
   host_permissions: [
     'https://translate.googleapis.com/*',
+    'https://*.youtube.com/*',
+    'https://youtube.com/*',
   ],
   background: {
     service_worker: 'src/background/index.ts',
@@ -37,12 +40,6 @@ export default defineManifest({
     {
       js: ['src/content/main.tsx'],
       matches: ['https://*.youtube.com/*', 'https://youtube.com/*'],
-    },
-    {
-      js: ['src/content/pageContext.ts'],
-      matches: ['https://*.youtube.com/*', 'https://youtube.com/*'],
-      world: 'MAIN',
-      run_at: 'document_start',
     },
   ],
   side_panel: {

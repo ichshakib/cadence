@@ -1,4 +1,5 @@
 // Cadence - Shared panel visibility state between the action button and transcript panel
+// The panel starts closed by default and does not pop open automatically on page load.
 
 const STORAGE_KEY = 'cadence_panel_open'
 
@@ -20,15 +21,25 @@ export function ensurePanelInjected(): boolean {
   return false
 }
 
-function getInitialPanelState(): boolean {
-  try {
-    return sessionStorage.getItem(STORAGE_KEY) === 'true'
-  } catch {
-    return false
-  }
-}
+// Panel/popover is closed by default
+let isPanelOpenState = false
 
-let isPanelOpenState: boolean = getInitialPanelState()
+// Clear any stale persistent open flag from chrome.storage.local
+if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+  chrome.storage.local.remove(STORAGE_KEY).catch(() => {})
+
+  // Listen for explicit manual toggle requests from extension popup or background
+  chrome.storage.onChanged.addListener((changes) => {
+    if (typeof changes[STORAGE_KEY]?.newValue === 'boolean') {
+      isPanelOpenState = changes[STORAGE_KEY].newValue
+      window.dispatchEvent(
+        new CustomEvent('cadence-transcript-panel-toggle', {
+          detail: { isOpen: isPanelOpenState },
+        })
+      )
+    }
+  })
+}
 
 export function isPanelOpen(): boolean {
   return isPanelOpenState
@@ -38,9 +49,7 @@ export function setPanelOpen(open: boolean): void {
   isPanelOpenState = open
   try {
     sessionStorage.setItem(STORAGE_KEY, String(open))
-  } catch {
-    // ignore
-  }
+  } catch {}
 
   window.dispatchEvent(
     new CustomEvent('cadence-transcript-panel-toggle', {
@@ -54,4 +63,3 @@ export function togglePanelOpen(): boolean {
   setPanelOpen(next)
   return next
 }
-
