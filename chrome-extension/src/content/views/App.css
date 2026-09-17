@@ -120,6 +120,22 @@ ytd-app[dark] .yt-playlist-top-banner:not([data-theme="light"]) {
   white-space: nowrap;
 }
 
+.yt-transcript-api-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
 .yt-transcript-filename-badge {
   font-size: 12px;
   font-weight: 500;

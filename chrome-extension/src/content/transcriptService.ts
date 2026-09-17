@@ -54,11 +54,15 @@ export function getCurrentVideoId(): string {
 const STORAGE_PREFIX = 'cadence_yt_transcript_'
 
 export function saveTranscript(videoId: string, data: TranscriptData): void {
+  const key = videoId ? `${STORAGE_PREFIX}${videoId}` : `${STORAGE_PREFIX}global`
   try {
-    const key = videoId ? `${STORAGE_PREFIX}${videoId}` : `${STORAGE_PREFIX}global`
     localStorage.setItem(key, JSON.stringify(data))
   } catch (err) {
     console.warn('[Cadence] Failed to save transcript to localStorage', err)
+  }
+
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    chrome.storage.local.set({ [key]: data }).catch(() => {})
   }
 }
 
@@ -99,12 +103,39 @@ export function loadStoredTranscript(videoId: string): TranscriptData | null {
   return null
 }
 
+export async function loadStoredTranscriptAsync(videoId: string): Promise<TranscriptData | null> {
+  const local = loadStoredTranscript(videoId)
+  if (local) return local
+
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    try {
+      const key = videoId ? `${STORAGE_PREFIX}${videoId}` : `${STORAGE_PREFIX}global`
+      const result = await chrome.storage.local.get(key)
+      if (result && result[key]) {
+        const data = result[key] as TranscriptData
+        if (Array.isArray(data.segments)) {
+          data.segments = data.segments.map((seg) => ({
+            ...seg,
+            text: sanitizeSegmentText(seg.text),
+          }))
+        }
+        return data
+      }
+    } catch {}
+  }
+  return null
+}
+
 export function clearStoredTranscript(videoId: string): void {
+  const key = videoId ? `${STORAGE_PREFIX}${videoId}` : `${STORAGE_PREFIX}global`
   try {
-    const key = videoId ? `${STORAGE_PREFIX}${videoId}` : `${STORAGE_PREFIX}global`
     localStorage.removeItem(key)
   } catch (err) {
     console.warn('[Cadence] Failed to remove stored transcript', err)
+  }
+
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    chrome.storage.local.remove(key).catch(() => {})
   }
 }
 
@@ -577,7 +608,78 @@ export async function extractFromNativeTranscript(): Promise<TranscriptSegment[]
 
 
 /**
- * Request YouTube player response data from the MAIN world pageContext script
+ * Robust extractor for captionTracks array from page scripts or HTML.
+ * Handles nested JSON structures (e.g. name.runs: [{ text: "..." }]) without premature termination.
+ */
+export function extractCaptionTracksFromJson(source: string): any[] | null {
+  if (!source || !source.includes('captionTracks')) return null
+
+  // If escaped quotes are present, normalize them
+  const unescaped = source.includes('\\"') ? source.replace(/\\"/g, '"').replace(/\\\\/g, '\\') : source
+
+  const key = '"captionTracks":'
+  let searchIdx = 0
+  while (true) {
+    const keyIdx = unescaped.indexOf(key, searchIdx)
+    if (keyIdx === -1) break
+
+    const arrayStart = unescaped.indexOf('[', keyIdx + key.length)
+    if (arrayStart === -1) {
+      searchIdx = keyIdx + key.length
+      continue
+    }
+
+    let depth = 0
+    let inString = false
+    let escape = false
+    let arrayEnd = -1
+
+    for (let i = arrayStart; i < unescaped.length; i++) {
+      const ch = unescaped[i]
+      if (escape) {
+        escape = false
+        continue
+      }
+      if (ch === '\\') {
+        escape = true
+        continue
+      }
+      if (ch === '"') {
+        inString = !inString
+        continue
+      }
+      if (!inString) {
+        if (ch === '[') depth++
+        else if (ch === ']') {
+          depth--
+          if (depth === 0) {
+            arrayEnd = i
+            break
+          }
+        }
+      }
+    }
+
+    if (arrayEnd !== -1) {
+      const rawJson = unescaped.substring(arrayStart, arrayEnd + 1)
+      try {
+        const parsed = JSON.parse(rawJson)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed
+        }
+      } catch {
+        // Continue searching if this instance failed to parse
+      }
+    }
+
+    searchIdx = keyIdx + key.length
+  }
+
+  return null
+}
+
+/**
+ * Request YouTube player response data from the MAIN world via background service worker or CustomEvents
  */
 export async function requestPlayerDataFromPage(): Promise<{
   captionTracks: any[]
@@ -585,6 +687,28 @@ export async function requestPlayerDataFromPage(): Promise<{
   title: string
   videoId: string
 } | null> {
+  // 1. Primary: Request via Chrome background service worker (chrome.scripting into MAIN world)
+  if (typeof chrome !== 'undefined' && typeof chrome.runtime?.sendMessage === 'function') {
+    try {
+      const bgResponse = await new Promise<any>((resolve) => {
+        chrome.runtime.sendMessage({ action: 'GET_PLAYER_DATA' }, (res) => {
+          if (chrome.runtime.lastError || !res || !res.success) {
+            resolve(null)
+          } else {
+            resolve(res)
+          }
+        })
+      })
+
+      if (bgResponse?.captionTracks && Array.isArray(bgResponse.captionTracks) && bgResponse.captionTracks.length > 0) {
+        return bgResponse
+      }
+    } catch (err) {
+      console.debug('[Cadence] Background get_player_data failed, trying fallback:', err)
+    }
+  }
+
+  // 2. Fallback: CustomEvent communication (if page context script is active)
   return new Promise((resolve) => {
     let handled = false
     const timeout = setTimeout(() => {
@@ -593,7 +717,7 @@ export async function requestPlayerDataFromPage(): Promise<{
         window.removeEventListener('CADENCE_RESPONSE_PLAYER_DATA', onResponse as any)
         resolve(null)
       }
-    }, 600)
+    }, 400)
 
     const onResponse = (e: CustomEvent) => {
       if (!handled && e.detail?.success) {
@@ -610,9 +734,31 @@ export async function requestPlayerDataFromPage(): Promise<{
 }
 
 /**
- * Fetch track timedtext via MAIN world pageContext script using active YouTube session
+ * Fetch track timedtext via MAIN world session using background service worker or CustomEvents
  */
 export async function fetchTrackViaPageContext(url: string): Promise<string | null> {
+  // 1. Primary: Use background service worker chrome.scripting to fetch inside MAIN world session
+  if (typeof chrome !== 'undefined' && typeof chrome.runtime?.sendMessage === 'function') {
+    try {
+      const bgResponse = await new Promise<any>((resolve) => {
+        chrome.runtime.sendMessage({ action: 'FETCH_TIMEDTEXT', url }, (res) => {
+          if (chrome.runtime.lastError || !res || !res.success) {
+            resolve(null)
+          } else {
+            resolve(res)
+          }
+        })
+      })
+
+      if (bgResponse?.text && bgResponse.text.trim().length > 0) {
+        return bgResponse.text
+      }
+    } catch (err) {
+      console.debug('[Cadence] Background fetch_timedtext failed, trying fallback:', err)
+    }
+  }
+
+  // 2. Fallback: CustomEvent communication
   return new Promise((resolve) => {
     const requestId = 'req_' + Math.random().toString(36).slice(2)
     let handled = false
@@ -622,7 +768,7 @@ export async function fetchTrackViaPageContext(url: string): Promise<string | nu
         window.removeEventListener('CADENCE_FETCH_TRACK_RESPONSE', onResponse as any)
         resolve(null)
       }
-    }, 2500)
+    }, 1500)
 
     const onResponse = (e: CustomEvent) => {
       if (!handled && e.detail?.requestId === requestId) {
@@ -661,7 +807,7 @@ export async function getAvailableCaptionTracks(videoId: string): Promise<Captio
     })
   }
 
-  // 1. Try querying pageContext in MAIN world
+  // 1. Try querying MAIN world via background service worker
   let captionTracks: any[] | null = null
   try {
     const pageData = await requestPlayerDataFromPage()
@@ -670,40 +816,36 @@ export async function getAvailableCaptionTracks(videoId: string): Promise<Captio
     }
   } catch {}
 
-  // 2. Try window.ytInitialPlayerResponse (if accessible)
+  // 2. Try window.ytInitialPlayerResponse (if accessible in same world)
   if (!captionTracks || captionTracks.length === 0) {
     const win = window as any
     captionTracks = win.ytInitialPlayerResponse?.captions?.playerCaptionsTracklistRenderer?.captionTracks || null
   }
 
-  // 3. Try inline scripts in document
+  // 3. Try inline scripts in document with balanced JSON parser
   if (!captionTracks || captionTracks.length === 0) {
     const scripts = Array.from(document.querySelectorAll('script'))
     for (const script of scripts) {
       const content = script.textContent || ''
       if (content.includes('captionTracks')) {
-        const match = content.match(/"captionTracks":\s*(\[.*?\])(?:,"|\})/)
-        if (match && match[1]) {
-          try {
-            captionTracks = JSON.parse(match[1])
-            break
-          } catch {}
+        const extracted = extractCaptionTracksFromJson(content)
+        if (extracted && extracted.length > 0) {
+          captionTracks = extracted
+          break
         }
       }
     }
   }
 
-  // 4. Fallback: fetch watch page HTML
+  // 4. Fallback: fetch watch page HTML with balanced JSON parser
   if (!captionTracks || captionTracks.length === 0) {
     try {
-      const res = await fetch(`https://www.youtube.com/watch?v=${videoId}`, { credentials: 'omit' })
+      const res = await fetch(`https://www.youtube.com/watch?v=${videoId}`, { credentials: 'include' })
       if (res.ok) {
         const html = await res.text()
-        const match = html.match(/"captionTracks":\s*(\[.*?\])(?:,"|\})/)
-        if (match && match[1]) {
-          try {
-            captionTracks = JSON.parse(match[1])
-          } catch {}
+        const extracted = extractCaptionTracksFromJson(html)
+        if (extracted && extracted.length > 0) {
+          captionTracks = extracted
         }
       }
     } catch {}
@@ -732,39 +874,104 @@ export async function getAvailableCaptionTracks(videoId: string): Promise<Captio
   return tracks
 }
 
+
+
 /**
  * Fetch segments from a caption track baseUrl (JSON3 or XML format)
+ * Includes rate-limit guard (HTTP 429) to avoid repeated spam requests.
  */
 export async function fetchSegmentsFromTrackUrl(baseUrl: string): Promise<TranscriptSegment[]> {
   const sep = baseUrl.includes('?') ? '&' : '?'
   let responseText = ''
+  let isRateLimited = false
 
-  // 1. Try fetching via page context (runs with YouTube's session cookies & origin)
+  const checkRateLimit = (status: number, text: string) => {
+    if (status === 429 || text.includes('429 Too Many Requests') || text.includes('unusual traffic')) {
+      isRateLimited = true
+      return true
+    }
+    return false
+  }
+
+  // 1. Try fetching via MAIN world (runs with YouTube's session cookies & origin)
   try {
     const pageText = await fetchTrackViaPageContext(`${baseUrl}${sep}fmt=json3`)
     if (pageText && pageText.trim().length > 0) {
-      responseText = pageText
+      if (checkRateLimit(200, pageText)) {
+        // Was rate limited by YouTube CDN
+      } else {
+        responseText = pageText
+      }
     }
   } catch {}
 
-  // 2. Direct fetch with json3
-  if (!responseText) {
+  // 1b. If fmt=json3 was empty in page context and NOT rate-limited, try raw baseUrl
+  if (!responseText && !isRateLimited) {
     try {
-      const res = await fetch(`${baseUrl}${sep}fmt=json3`)
-      if (res.ok) {
-        responseText = await res.text()
+      const pageText = await fetchTrackViaPageContext(baseUrl)
+      if (pageText && pageText.trim().length > 0) {
+        if (!checkRateLimit(200, pageText)) {
+          responseText = pageText
+        }
       }
     } catch {}
   }
 
-  // 3. Direct fetch raw
-  if (!responseText) {
+  // 2. Direct fetch with json3 and credentials (only if not rate limited)
+  if (!responseText && !isRateLimited) {
     try {
-      const res = await fetch(baseUrl)
-      if (res.ok) {
-        responseText = await res.text()
+      const res = await fetch(`${baseUrl}${sep}fmt=json3`, { credentials: 'include' })
+      if (res.status === 429) {
+        isRateLimited = true
+      } else if (res.ok) {
+        const text = await res.text()
+        if (checkRateLimit(res.status, text)) {
+          isRateLimited = true
+        } else if (text.trim().length > 0) {
+          responseText = text
+        }
       }
     } catch {}
+  }
+
+  // 3. Direct fetch raw with credentials (only if not rate limited)
+  if (!responseText && !isRateLimited) {
+    try {
+      const res = await fetch(baseUrl, { credentials: 'include' })
+      if (res.status === 429) {
+        isRateLimited = true
+      } else if (res.ok) {
+        const text = await res.text()
+        if (checkRateLimit(res.status, text)) {
+          isRateLimited = true
+        } else if (text.trim().length > 0) {
+          responseText = text
+        }
+      }
+    } catch {}
+  }
+
+  // 4. Direct fetch with srv3 format (only if not rate limited)
+  if (!responseText && !isRateLimited) {
+    try {
+      const res = await fetch(`${baseUrl}${sep}fmt=srv3`, { credentials: 'include' })
+      if (res.status === 429) {
+        isRateLimited = true
+      } else if (res.ok) {
+        const text = await res.text()
+        if (checkRateLimit(res.status, text)) {
+          isRateLimited = true
+        } else if (text.trim().length > 0) {
+          responseText = text
+        }
+      }
+    } catch {}
+  }
+
+  if (isRateLimited && !responseText) {
+    throw new Error(
+      'YouTube rate-limited subtitle requests (HTTP 429). Please add your free YouTube Data API Key in the Cadence popup to bypass rate limits.'
+    )
   }
 
   const segments: TranscriptSegment[] = []
@@ -790,6 +997,7 @@ export async function fetchSegmentsFromTrackUrl(baseUrl: string): Promise<Transc
         }
       }
     } catch {
+      // Parse XML format (<text start="..." dur="...">...)
       const matches = [...responseText.matchAll(/<text\s+start="([\d.]+)"(?:\s+dur="([\d.]+)")?[^>]*>([\s\S]*?)<\/text>/gi)]
       for (const m of matches) {
         const start = parseFloat(m[1])
@@ -802,6 +1010,24 @@ export async function fetchSegmentsFromTrackUrl(baseUrl: string): Promise<Transc
             formattedTime: formatTimestamp(start),
             text,
           })
+        }
+      }
+
+      // Also parse <p t="..." d="..."> format if present (srv3 format)
+      if (segments.length === 0) {
+        const pMatches = [...responseText.matchAll(/<p\s+t="(\d+)"(?:\s+d="(\d+)")?[^>]*>([\s\S]*?)<\/p>/gi)]
+        for (const m of pMatches) {
+          const start = parseInt(m[1], 10) / 1000
+          const dur = m[2] ? parseInt(m[2], 10) / 1000 : 4
+          const text = sanitizeSegmentText(m[3])
+          if (text) {
+            segments.push({
+              start,
+              dur,
+              formattedTime: formatTimestamp(start),
+              text,
+            })
+          }
         }
       }
     }
@@ -819,6 +1045,7 @@ export async function fetchYouTubeCaptions(videoId: string, targetTrackId?: stri
   }
 
   const videoTitle = document.querySelector('h1.ytd-watch-metadata yt-formatted-string, #title h1')?.textContent?.trim() || 'YouTube Subtitles'
+
   const availableTracks = await getAvailableCaptionTracks(videoId)
 
   // 1. If a specific track was requested:
@@ -970,22 +1197,52 @@ export const SUPPORTED_LANGUAGES: TargetLanguage[] = [
 ]
 
 const TARGET_LANG_KEY = 'cadence_yt_target_lang'
+let cachedTargetLang: string = ''
 
 export function getStoredTargetLanguage(): string {
+  if (cachedTargetLang) return cachedTargetLang
   try {
-    return localStorage.getItem(TARGET_LANG_KEY) || 'en'
+    const val = localStorage.getItem(TARGET_LANG_KEY)
+    if (val) {
+      cachedTargetLang = val
+      return val
+    }
   } catch {
-    return 'en'
+    // ignore
   }
+  return 'en'
+}
+
+export async function loadStoredTargetLanguageAsync(): Promise<string> {
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    try {
+      const result = await chrome.storage.local.get(TARGET_LANG_KEY)
+      if (result && typeof result[TARGET_LANG_KEY] === 'string' && result[TARGET_LANG_KEY]) {
+        cachedTargetLang = result[TARGET_LANG_KEY]
+        try {
+          localStorage.setItem(TARGET_LANG_KEY, cachedTargetLang)
+        } catch {}
+        return cachedTargetLang
+      }
+    } catch {
+      // ignore
+    }
+  }
+  return getStoredTargetLanguage()
 }
 
 export function saveStoredTargetLanguage(lang: string): void {
+  cachedTargetLang = lang
   try {
     localStorage.setItem(TARGET_LANG_KEY, lang)
   } catch {
     // ignore
   }
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    chrome.storage.local.set({ [TARGET_LANG_KEY]: lang }).catch(() => {})
+  }
 }
+
 
 /**
  * Fallback to Chrome on-device AI model if available

@@ -16,7 +16,6 @@ import {
   UploadCloud,
   CornerDownRight,
   Search,
-  Sparkles,
 } from 'lucide-react'
 import type { TranscriptData, TranscriptSegment } from '../types.ts'
 import {
@@ -25,13 +24,12 @@ import {
   getCurrentVideoId,
   saveTranscript,
   loadStoredTranscript,
+  loadStoredTranscriptAsync,
   clearStoredTranscript,
   translateSegments,
-  fetchYouTubeCaptions,
-  extractFromNativeTranscript,
-  fetchSegmentsFromTrackUrl,
   SUPPORTED_LANGUAGES,
   getStoredTargetLanguage,
+  loadStoredTargetLanguageAsync,
   saveStoredTargetLanguage,
 } from '../transcriptService.ts'
 import { setPanelOpen } from '../panelState.ts'
@@ -51,8 +49,6 @@ export default function Transcript() {
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false)
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied'>('idle')
   const [isDragging, setIsDragging] = useState<boolean>(false)
-  const [isFetching, setIsFetching] = useState<boolean>(false)
-  const [fetchError, setFetchError] = useState<string | null>(null)
 
   // Translation state
   const [isTranslating, setIsTranslating] = useState<boolean>(false)
@@ -69,13 +65,40 @@ export default function Transcript() {
   const listContainerRef = useRef<HTMLDivElement | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
+  // Track latest transcript data and translation handler in refs for storage listeners
+  const transcriptDataRef = useRef<TranscriptData | null>(transcriptData)
+  useEffect(() => {
+    transcriptDataRef.current = transcriptData
+  }, [transcriptData])
+
+  const performTranslationRef = useRef<(langToUse: string) => Promise<void>>(async () => {})
+
+  // Initial load: sync target language and transcript from chrome.storage.local if available
+  useEffect(() => {
+    const id = getCurrentVideoId()
+    if (id && !transcriptData) {
+      loadStoredTranscriptAsync(id).then((stored) => {
+        if (stored && getCurrentVideoId() === id) {
+          setTranscriptData(stored)
+          if (stored.targetLanguage) {
+            setTargetLang(stored.targetLanguage)
+          }
+        }
+      })
+    }
+    loadStoredTargetLanguageAsync().then((lang) => {
+      if (lang) {
+        setTargetLang(lang)
+      }
+    })
+  }, [])
+
   // Sync video ID across YouTube SPA navigation
   useEffect(() => {
     const checkVideoId = async () => {
       const id = getCurrentVideoId()
       if (id && id !== videoId) {
         setVideoId(id)
-        setFetchError(null)
         setParseError(null)
         setTranslateError(null)
         setIsPasteOpen(false)
@@ -89,6 +112,14 @@ export default function Transcript() {
           }
         } else {
           setTranscriptData(null)
+          loadStoredTranscriptAsync(id).then((asyncStored) => {
+            if (asyncStored && getCurrentVideoId() === id) {
+              setTranscriptData(asyncStored)
+              if (asyncStored.targetLanguage) {
+                setTargetLang(asyncStored.targetLanguage)
+              }
+            }
+          })
         }
       }
     }
@@ -107,98 +138,30 @@ export default function Transcript() {
     }
   }, [videoId])
 
-  // Explicit user-triggered fetch with full error reporting
-  const handleManualFetch = async () => {
-    const id = videoId || getCurrentVideoId()
-    if (!id) {
-      setFetchError('No YouTube video ID detected. Please ensure you are on a YouTube watch page.')
-      return
-    }
-    setIsFetching(true)
-    setFetchError(null)
-    setParseError(null)
-    try {
-      const data = await fetchYouTubeCaptions(id)
-      if (data && data.segments.length > 0) {
-        setTranscriptData(data)
-        setFetchError(null)
-      } else {
-        setFetchError('No subtitles or captions found for this video. The creator might not have enabled closed captions. You can upload an SRT/VTT file or paste the transcript below.')
-      }
-    } catch (err: any) {
-      setFetchError(err.message || 'Failed to fetch YouTube subtitles.')
-    } finally {
-      setIsFetching(false)
-    }
-  }
-
-  // Switch between available transcript / caption tracks
-  const handleTrackChange = async (trackId: string) => {
-    const id = videoId || getCurrentVideoId()
-    if (!id || !transcriptData) return
-    setIsFetching(true)
-    setFetchError(null)
-    setTranslateError(null)
-    try {
-      if (trackId === 'native') {
-        const nativeSegs = await extractFromNativeTranscript()
-        if (nativeSegs && nativeSegs.length > 0) {
-          const updated: TranscriptData = {
-            ...transcriptData,
-            segments: nativeSegs,
-            originalSegments: nativeSegs.map((s: TranscriptSegment) => ({ ...s })),
-            selectedTrackId: 'native',
-            fileName: 'YouTube Native Subtitles',
+  // Sync Target Language from chrome.storage
+  useEffect(() => {
+    if (typeof chrome !== 'undefined' && chrome.storage?.onChanged) {
+      const listener = (changes: any, areaName: string) => {
+        if (areaName === 'local' || !areaName) {
+          if (changes.cadence_yt_target_lang) {
+            const newLang = changes.cadence_yt_target_lang.newValue
+            if (newLang && typeof newLang === 'string') {
+              setTargetLang(newLang)
+              // If we already have a loaded transcript, dynamically translate to the new language
+              const current = transcriptDataRef.current
+              if (current && current.segments && current.segments.length > 0 && current.targetLanguage !== newLang) {
+                performTranslationRef.current(newLang)
+              }
+            }
           }
-          setTranscriptData(updated)
-          saveTranscript(id, updated)
-          return
         }
       }
-
-      const track = transcriptData.availableTracks?.find((t) => t.id === trackId)
-      if (track?.baseUrl) {
-        const segs = await fetchSegmentsFromTrackUrl(track.baseUrl)
-        if (segs && segs.length > 0) {
-          const updated: TranscriptData = {
-            ...transcriptData,
-            title: `${transcriptData.title?.split(' (')[0] || 'YouTube Transcript'} (${track.name})`,
-            segments: segs,
-            originalSegments: segs.map((s: TranscriptSegment) => ({ ...s })),
-            fileName: track.name,
-            selectedTrackId: track.id,
-            detectedLanguage: track.languageCode,
-          }
-          setTranscriptData(updated)
-          saveTranscript(id, updated)
-          return
-        }
+      chrome.storage.onChanged.addListener(listener)
+      return () => {
+        chrome.storage.onChanged.removeListener(listener)
       }
-
-      // If track has a specific language code, translate the original source lines directly to it
-      const baseSegs = transcriptData.originalSegments || transcriptData.segments
-      if (baseSegs.length > 0 && track?.languageCode) {
-        const res = await translateSegments(baseSegs, track.languageCode)
-        const updated: TranscriptData = {
-          ...transcriptData,
-          segments: res.translatedSegments.map((s) => ({
-            ...s,
-            text: s.translatedText || s.text,
-            translatedText: undefined,
-          })),
-          selectedTrackId: trackId,
-          fileName: track.name,
-        }
-        setTranscriptData(updated)
-        saveTranscript(id, updated)
-        return
-      }
-    } catch (err: any) {
-      setFetchError(err.message || 'Failed to switch transcript track.')
-    } finally {
-      setIsFetching(false)
     }
-  }
+  }, [])
 
   // Track video playback time
   useEffect(() => {
@@ -356,7 +319,6 @@ export default function Transcript() {
     setSearchQuery('')
     setParseError(null)
     setTranslateError(null)
-    setFetchError(null)
   }
 
   const handleCopyTranscript = async () => {
@@ -382,30 +344,31 @@ export default function Transcript() {
 
   // Perform translation for a specific target language
   const performTranslation = async (langToUse: string) => {
-    if (!transcriptData || segments.length === 0) return
+    const currentData = transcriptDataRef.current
+    if (!currentData || !currentData.segments || currentData.segments.length === 0) return
     setIsTranslating(true)
     setTranslateError(null)
-    const baseSegments = transcriptData.originalSegments || transcriptData.segments
+    const baseSegments = currentData.originalSegments || currentData.segments
     setTranslateProgress({ done: 0, total: baseSegments.length })
 
     try {
       const res = await translateSegments(
         baseSegments,
         langToUse,
-        transcriptData.detectedLanguage,
+        currentData.detectedLanguage,
         (done, total) => setTranslateProgress({ done, total })
       )
 
       const updated: TranscriptData = {
-        ...transcriptData,
+        ...currentData,
         segments: res.translatedSegments,
-        originalSegments: transcriptData.originalSegments || baseSegments.map((s: TranscriptSegment) => ({ ...s })),
+        originalSegments: currentData.originalSegments || baseSegments.map((s: TranscriptSegment) => ({ ...s })),
         detectedLanguage: res.detectedSource,
         targetLanguage: langToUse,
         showTranslation: true,
       }
       setTranscriptData(updated)
-      saveTranscript(videoId, updated)
+      saveTranscript(videoId || getCurrentVideoId(), updated)
       setShowTranslation(true)
       setIsTranslating(false)
       setTranslateProgress(null)
@@ -416,6 +379,10 @@ export default function Transcript() {
       setTranslateProgress(null)
     }
   }
+
+  useEffect(() => {
+    performTranslationRef.current = performTranslation
+  })
 
   // Translate / Toggle Dual-Row Bilingual Subtitles
   const handleTranslateOrToggle = async () => {
@@ -487,43 +454,17 @@ export default function Transcript() {
                 • {segments.length} lines
               </span>
             )}
-            {transcriptData?.availableTracks && transcriptData.availableTracks.length > 1 ? (
-              <select
-                className="yt-transcript-track-select"
-                value={transcriptData.selectedTrackId || (transcriptData.availableTracks[0]?.id ?? 'native')}
-                onChange={(e) => handleTrackChange(e.target.value)}
-                title="Select subtitle / transcript track"
-                aria-label="Select subtitle track"
-                disabled={isFetching}
-              >
-                {transcriptData.availableTracks.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
-                  </option>
-                ))}
-              </select>
-            ) : transcriptData?.fileName ? (
+            {transcriptData?.fileName && (
               <span className="yt-transcript-filename-badge" title={transcriptData.fileName}>
                 {transcriptData.fileName}
               </span>
-            ) : null}
+            )}
           </div>
 
           <div className="yt-transcript-header-controls">
-            {/* Auto-fetch, Upload & Paste buttons (when no transcript loaded) */}
+            {/* Upload & Paste buttons (when no transcript loaded) */}
             {segments.length === 0 && (
               <>
-                <button
-                  type="button"
-                  className="yt-transcript-icon-btn"
-                  title="Fetch YouTube Subtitles"
-                  onClick={handleManualFetch}
-                  disabled={isFetching}
-                  aria-label="Fetch YouTube Subtitles"
-                >
-                  <Sparkles size={16} className={isFetching ? 'yt-icon-spin' : ''} />
-                </button>
-
                 <button
                   type="button"
                   className="yt-transcript-icon-btn"
@@ -666,23 +607,6 @@ export default function Transcript() {
           </div>
         )}
 
-        {/* Subtitle Fetch error message if fetch failed */}
-        {fetchError && (
-          <div className="yt-transcript-error-badge" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-              <AlertCircle size={14} />
-              <span>{fetchError}</span>
-            </span>
-            <button
-              type="button"
-              className="yt-error-dismiss-btn"
-              onClick={() => setFetchError(null)}
-              aria-label="Dismiss error"
-            >
-              <X size={14} />
-            </button>
-          </div>
-        )}
 
         {/* Search Bar */}
         {!isCollapsed && !isPasteOpen && segments.length > 0 && (
@@ -769,26 +693,15 @@ export default function Transcript() {
                 <UploadCloud size={32} />
               </div>
               <div className="yt-dropzone-primary-text">
-                {isFetching ? 'Fetching YouTube subtitles...' : 'Load or paste transcript'}
+                Upload or paste transcript
               </div>
               <div className="yt-dropzone-sub-text">
-                {isFetching
-                  ? 'Extracting subtitles from YouTube...'
-                  : 'Click to browse file or drag & drop here (.txt, .srt, .vtt, .json)'}
+                Upload an SRT, VTT, or TXT subtitle file, or paste your transcript text
               </div>
               <div className="yt-dropzone-actions" onClick={(e) => e.stopPropagation()}>
                 <button
                   type="button"
                   className="yt-transcript-btn yt-transcript-btn-primary"
-                  onClick={handleManualFetch}
-                  disabled={isFetching}
-                >
-                  <Sparkles size={15} style={{ marginRight: 6 }} className={isFetching ? 'yt-icon-spin' : ''} />
-                  {isFetching ? 'Fetching...' : 'Fetch YouTube Subtitles'}
-                </button>
-                <button
-                  type="button"
-                  className="yt-transcript-btn yt-transcript-btn-secondary"
                   onClick={triggerUpload}
                 >
                   <Upload size={15} style={{ marginRight: 6 }} />
@@ -806,25 +719,6 @@ export default function Transcript() {
                   Paste
                 </button>
               </div>
-              {fetchError && (
-                <div className="yt-transcript-callout-error" onClick={(e) => e.stopPropagation()}>
-                  <div className="yt-callout-header">
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                      <AlertCircle size={15} className="yt-callout-icon" />
-                      <span className="yt-callout-title">Subtitles Unavailable</span>
-                    </span>
-                    <button
-                      type="button"
-                      className="yt-callout-close"
-                      onClick={() => setFetchError(null)}
-                      aria-label="Dismiss"
-                    >
-                      <X size={13} />
-                    </button>
-                  </div>
-                  <p className="yt-callout-desc">{fetchError}</p>
-                </div>
-              )}
               {parseError && (
                 <div className="yt-transcript-error-badge" style={{ marginTop: 8, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                   <AlertCircle size={14} />
