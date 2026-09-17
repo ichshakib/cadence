@@ -17,6 +17,7 @@
 - [ ] **Content Script (`main.tsx`):** In-page injection, SPA navigation listeners, or DOM targeting
 - [ ] **Transcript Panel (`Transcript.tsx`):** Transcript rows, search filter, language selection, or playback sync
 - [ ] **Action Button (`TranscriptActionButton.tsx`):** Placement in YouTube action bar, tooltip, or toggle state
+- [ ] **Video Player Subtitle Overlay (`VideoOverlay.tsx`):** Synced subtitle display on the YouTube player, positioning, or fullscreen styling
 - [ ] **Extraction & Translation Service (`transcriptService.ts`):** Caption track detection, JSON/XML parsing, or translation batching
 - [ ] **Page Context Script (`pageContext.ts`):** YouTube `playerResponse` interception in MAIN world
 - [ ] **Background Service Worker (`src/background/`):** Google Translate GTX API messaging

@@ -36,7 +36,7 @@ cadence/
 │   │   ├── background/            # Service worker (Google Translate GTX batch translation)
 │   │   ├── content/               # Content scripts & in-page UI
 │   │   │   ├── hooks/             # YouTube theme observation hooks (useYouTubeTheme)
-│   │   │   ├── views/             # React views (App, Transcript, TranscriptActionButton)
+│   │   │   ├── views/             # React views (App, Transcript, TranscriptActionButton, VideoOverlay)
 │   │   │   ├── main.tsx           # Content script entry point & DOM injection logic
 │   │   │   ├── pageContext.ts     # MAIN world script (interfacing with ytInitialPlayerResponse)
 │   │   │   ├── panelState.ts      # Shared visibility state between button & panel

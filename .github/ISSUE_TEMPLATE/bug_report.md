@@ -12,6 +12,7 @@ assignees: ''
 ## Affected Component
 - [ ] In-Page Action Button (`Transcript` button under video)
 - [ ] In-Page Transcript Panel & Subtitle Display
+- [ ] On-Video Player Subtitle Overlay
 - [ ] YouTube Player Caption Track Extraction
 - [ ] Batch Translation Engine (Google Translate GTX / Chrome AI)
 - [ ] Playback Synchronization & Timestamp Seeking

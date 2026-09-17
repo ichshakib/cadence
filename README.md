@@ -74,6 +74,13 @@ Operating entirely client-side, Cadence interfaces with YouTube's player respons
 - Automatically handles YouTube SPA navigation (`yt-navigate-finish`, `popstate`) without requiring full page refreshes.
 - Positions the transcript panel at the top of the right column (`#secondary-inner`) or directly below the player on mobile and theater mode.
 
+### 📺 On-Video Player Subtitle Overlay
+- Display synchronized bilingual subtitles directly on top of the YouTube video player.
+- Operates seamlessly across normal view, theater mode, and full-screen playback.
+- Automatically adjusts its position when YouTube playback controls auto-hide during video playback.
+- Click-through transparency (`pointer-events: none`) ensures pause/play and seeking remain 100% responsive.
+- One-click toggle from the transcript panel header.
+
 ### 🌐 Bilingual Dual Subtitles
 - Displays the speaker's original spoken line alongside your translated language in stacked, synchronized rows.
 - Zero-config batch translation: translates entire video transcripts in a single network round-trip via Google Translate's GTX API, avoiding rate limits and stutter.
@@ -112,16 +119,19 @@ flowchart TD
         IsolatedWorld["ISOLATED World: main.tsx<br/>(MutationObserver & React Root)"]
         ActionButton["Action Button<br/>(Injected in YouTube Action Bar)"]
         TranscriptCard["Transcript Panel<br/>(Mounted in #secondary-inner / #below)"]
+        VideoOverlay["On-Video Subtitles<br/>(Mounted in #movie_player)"]
     end
 
     subgraph Chrome Extension
         BG["Background Service Worker: index.ts<br/>(Single-batch Google Translate proxy)"]
-        Popup["Toolbar Popup: popup/App.tsx<br/>(Preferences & Connection Status)"]
+        Action["Toolbar Action: onClicked<br/>(Toggles in-page transcript directly)"]
     end
 
     MainWorld <-->|"CustomEvents<br/>(CADENCE_REQUEST_PLAYER_DATA,<br/>CADENCE_FETCH_TRACK)"| IsolatedWorld
     IsolatedWorld --> ActionButton
     IsolatedWorld --> TranscriptCard
+    IsolatedWorld --> VideoOverlay
+    Action -.->|"Dispatches toggle event"| IsolatedWorld
     TranscriptCard <-->|"chrome.runtime.sendMessage<br/>(TRANSLATE_ALL)"| BG
 ```
 
@@ -141,7 +151,7 @@ cadence/
 │   │   ├── background/            # Background service worker (batch translation proxy)
 │   │   ├── content/               # Content scripts & in-page UI
 │   │   │   ├── hooks/             # YouTube theme observer (useYouTubeTheme)
-│   │   │   ├── views/             # React views (App, Transcript, TranscriptActionButton)
+│   │   │   ├── views/             # React views (App, Transcript, TranscriptActionButton, VideoOverlay)
 │   │   │   ├── main.tsx           # Content script entry point & DOM injection logic
 │   │   │   ├── pageContext.ts     # MAIN world script (interfacing with ytInitialPlayerResponse)
 │   │   │   ├── panelState.ts      # Shared visibility state between button & panel
@@ -235,7 +245,10 @@ Open `http://localhost:3000/` in your browser to test the interactive demo.
 ## Usage Guide
 
 ### In-Page Transcript Button
-When viewing any YouTube video, look directly under the video title next to the Like/Dislike and Share buttons. Click **"Transcript"** to open the Cadence panel.
+When viewing any YouTube video, look directly under the video title next to the Like/Dislike and Share buttons. Click **"Transcript"** to open the Cadence panel. You can also click the Cadence toolbar icon to toggle the panel on any YouTube page.
+
+### On-Video Player Subtitle Overlay
+Click the **Subtitles** icon button in the transcript panel header to toggle subtitles directly on the YouTube video player. When enabled, subtitles stay synchronized with speech and automatically adjust for player controls and fullscreen mode.
 
 ### Bilingual Dual-Language Subtitles
 1. In the panel header, select your desired target translation language from the dropdown.
