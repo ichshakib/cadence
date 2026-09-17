@@ -3,37 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cadence - YouTube Transcript & Bilingual Subtitles</title>
-  <meta name="description" content="Instant YouTube transcript extraction, zero-config bilingual translation, interactive playback seeking, and full-text search directly inside YouTube.">
+  <title>Cadence - Bilingual YouTube Subtitles</title>
+  <meta name="description" content="Upload or paste transcripts for synchronized dual-row bilingual subtitles, instant seeking, and full-text search directly inside YouTube.">
   <meta name="keywords" content="YouTube transcript, bilingual subtitles, YouTube captions, dual subtitles, video translation, Chrome extension">
 
   <!-- OpenGraph / Social Meta Tags -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Cadence - YouTube Transcript & Bilingual Subtitles">
-  <meta property="og:description" content="Extract transcripts and enjoy synchronized dual-language bilingual subtitles directly in YouTube with one click.">
+  <meta property="og:title" content="Cadence - Bilingual YouTube Subtitles">
+  <meta property="og:description" content="Follow foreign language videos with synchronized dual-language bilingual subtitles directly in YouTube.">
   <meta property="og:image" content="assets/images/logo.svg">
 
   <!-- Favicon Set -->
-  <link rel="apple-touch-icon" sizes="180x180" href="assets/images/favicon_io/apple-touch-icon.png">
+  <link rel="icon" type="image/svg+xml" href="assets/images/logo.svg">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/images/favicon_io/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="assets/images/favicon_io/favicon-16x16.png">
-  <link rel="shortcut icon" href="assets/images/favicon_io/favicon.ico">
-  <link rel="manifest" href="assets/images/favicon_io/site.webmanifest">
-  <link rel="icon" type="image/svg+xml" href="assets/images/logo.svg">
 
   <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Stylesheet -->
   <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
-  <!-- Ambient Background Glow Orbs -->
-  <div class="bg-glow-orb bg-glow-1" aria-hidden="true"></div>
-  <div class="bg-glow-orb bg-glow-2" aria-hidden="true"></div>
-
   <!-- Site Header -->
   <header class="site-header">
     <div class="container header-container">
@@ -45,7 +38,7 @@
       <nav aria-label="Main Navigation">
         <ul class="nav-menu">
           <li><a href="#features" class="nav-link">Features</a></li>
-          <li><a href="#demo" class="nav-link">Interactive Demo</a></li>
+          <li><a href="#demo" class="nav-link">Demo</a></li>
           <li><a href="#how-it-works" class="nav-link">How It Works</a></li>
           <li><a href="#languages" class="nav-link">Languages</a></li>
           <li><a href="#faq" class="nav-link">FAQ</a></li>
@@ -53,15 +46,8 @@
       </nav>
 
       <div class="header-actions">
-        <a href="#demo" class="btn btn-secondary btn-sm" id="header-btn-demo">Try Demo</a>
+        <a href="https://github.com/ichshakib/cadence" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">GitHub</a>
         <a href="https://chrome.google.com/webstore" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm" id="header-btn-install">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <circle cx="12" cy="12" r="4"></circle>
-            <line x1="21.17" y1="8" x2="12" y2="8"></line>
-            <line x1="3.95" y1="6.06" x2="8.54" y2="14"></line>
-            <line x1="10.88" y1="21.94" x2="15.46" y2="14"></line>
-          </svg>
           Add to Chrome
         </a>
       </div>
@@ -71,73 +57,40 @@
   <main>
     <!-- Hero Section -->
     <section class="hero-section">
-      <div class="container">
+      <div class="container hero-container">
         <div class="hero-badge">
-          <span class="badge-pulse-dot" aria-hidden="true"></span>
-          <span>Cadence v1.0 • Manifest V3 Extension</span>
+          <span>Chrome Extension • Open Source</span>
         </div>
 
         <h1 class="hero-title">
-          Instant YouTube Transcripts &amp;<br>
-          <span class="gradient-text">Bilingual Dual Subtitles</span>
+          Bilingual Subtitles for YouTube
         </h1>
 
         <p class="hero-subtitle">
-          Enjoy instant transcript extraction, real-time dual-language translations, synchronized auto-scrolling playback, and lightning-fast full-text search directly inside YouTube.
+          Upload or paste any transcript to follow foreign language videos with synchronized, dual-row bilingual subtitles directly inside YouTube.
         </p>
 
         <div class="hero-cta-group">
           <a href="https://chrome.google.com/webstore" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-lg" id="hero-cta-install">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="7 10 12 15 17 10"></polyline>
-              <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
             Add to Chrome — Free
           </a>
           <a href="#demo" class="btn btn-secondary btn-lg" id="hero-cta-demo">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-              <polygon points="5 3 19 12 5 21 5 3"></polygon>
-            </svg>
-            Explore Interactive Demo
+            Interactive Demo
           </a>
         </div>
 
-        <div class="hero-metrics">
-          <div class="metric-item">
-            <span class="metric-icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="2" y1="12" x2="22" y2="12"></line>
-                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-              </svg>
-            </span>
-            <span><strong>20+</strong> Languages Supported</span>
+        <div class="hero-highlights">
+          <div class="highlight-item">
+            <strong>20+</strong> Languages
           </div>
-          <div class="metric-item">
-            <span class="metric-icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-            </span>
-            <span><strong>0 Config</strong> Zero Setup Required</span>
+          <div class="highlight-item">
+            <strong>SRT / VTT / TXT</strong> Upload
           </div>
-          <div class="metric-item">
-            <span class="metric-icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-              </svg>
-            </span>
-            <span><strong>100% Free</strong> &amp; Open Ecosystem</span>
+          <div class="highlight-item">
+            <strong>100% Free</strong> &amp; Open Source
           </div>
-          <div class="metric-item">
-            <span class="metric-icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-              </svg>
-            </span>
-            <span><strong>Privacy First</strong> Local In-Page Processing</span>
+          <div class="highlight-item">
+            <strong>Private</strong> In-Browser Processing
           </div>
         </div>
       </div>
@@ -147,10 +100,10 @@
     <section class="demo-section" id="demo">
       <div class="container">
         <div class="section-header">
-          <span class="section-tag">Interactive Simulation</span>
-          <h2 class="section-title">Experience Cadence in Action</h2>
+          <span class="section-tag">Interactive Preview</span>
+          <h2 class="section-title">See Cadence in Action</h2>
           <p class="section-desc">
-            Test real-time language switching, timestamp seeking, and subtitle search below just like on YouTube.
+            Test real-time language switching, timestamp seeking, and subtitle search below.
           </p>
         </div>
 
@@ -159,9 +112,9 @@
           <div class="demo-player-panel">
             <div class="player-video-viewport" id="demo-video-viewport">
               <div class="player-simulated-video">
-                <span class="video-scene-badge">Simulated YouTube Stream</span>
-                <h3 class="video-scene-title">Understanding Next-Gen Speech Cadence</h3>
-                <p class="video-scene-channel">Cadence AI Lab • 1.2M views</p>
+                <span class="video-scene-badge">Sample Video</span>
+                <h3 class="video-scene-title">Understanding Speech Cadence</h3>
+                <p class="video-scene-channel">Cadence AI • 1.2M views</p>
               </div>
 
               <!-- Real-time Bilingual Subtitle Overlay -->
@@ -185,33 +138,28 @@
               <div class="player-controls-actions">
                 <div class="player-ctrl-left">
                   <button type="button" class="player-btn-play" id="demo-play-btn" aria-label="Play / Pause Demo">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                       <polygon points="5 3 19 12 5 21 5 3"></polygon>
                     </svg>
                   </button>
                   <span class="player-time-display" id="demo-time-display">00:04 / 01:05</span>
                 </div>
-                <div style="font-size: 0.75rem; color: var(--text-muted);">
-                  Click any timestamp on the right to jump
-                </div>
+                <span class="player-hint-text">Click any line to jump</span>
               </div>
             </div>
 
-            <!-- YouTube Action Bar Mock (Showing Injected Button) -->
+            <!-- YouTube Action Bar Mock -->
             <div class="player-actions-mock">
-              <div class="yt-metadata-mock">
-                <h4>Cadence Action Button Integration</h4>
-                <p>Native look and feel between Like/Dislike and Share</p>
-              </div>
+              <span class="yt-action-note">Injected under video:</span>
               <div class="yt-button-bar-mock">
                 <button type="button" class="yt-mock-btn">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
                   </svg>
                   18K
                 </button>
                 <button type="button" class="yt-mock-btn active-transcript" id="demo-transcript-action-btn">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <rect x="2" y="4" width="20" height="16" rx="2"></rect>
                     <line x1="7" y1="15" x2="17" y2="15"></line>
                     <line x1="7" y1="10" x2="13" y2="10"></line>
@@ -219,7 +167,7 @@
                   Transcript
                 </button>
                 <button type="button" class="yt-mock-btn">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="18" cy="5" r="3"></circle>
                     <circle cx="6" cy="12" r="3"></circle>
                     <circle cx="18" cy="19" r="3"></circle>
@@ -241,7 +189,6 @@
               </div>
 
               <div class="transcript-controls">
-                <!-- Target Translation Language Dropdown -->
                 <select class="lang-select-box" id="demo-lang-select" aria-label="Select Target Translation Language">
                   <option value="es">Spanish (Español)</option>
                   <option value="fr">French (Français)</option>
@@ -252,17 +199,15 @@
                   <option value="zh">Chinese (中文)</option>
                 </select>
 
-                <!-- Copy Transcript Button -->
-                <button type="button" class="transcript-icon-btn" id="demo-copy-btn" title="Copy Bilingual Transcript" aria-label="Copy Transcript">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <button type="button" class="transcript-icon-btn" id="demo-copy-btn" title="Copy Transcript" aria-label="Copy Transcript">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                     <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                   </svg>
                 </button>
 
-                <!-- Auto-scroll status icon -->
-                <button type="button" class="transcript-icon-btn active" title="Auto-scroll is Active" aria-label="Auto-scroll active">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <button type="button" class="transcript-icon-btn active" title="Auto-scroll active" aria-label="Auto-scroll active">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="23 4 23 10 17 10"></polyline>
                     <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
                   </svg>
@@ -270,9 +215,9 @@
               </div>
             </div>
 
-            <!-- Real-Time Search Bar -->
+            <!-- Search Bar -->
             <div class="transcript-search-container">
-              <svg class="search-icon-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="search-icon-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
               </svg>
@@ -280,7 +225,7 @@
                 type="text"
                 id="demo-search-input"
                 class="transcript-search-input"
-                placeholder="Search in original transcript or translation..."
+                placeholder="Search transcript or translation..."
                 aria-label="Search Transcript"
               >
             </div>
@@ -298,97 +243,51 @@
     <section class="features-section" id="features">
       <div class="container">
         <div class="section-header">
-          <span class="section-tag">Powerful Features</span>
-          <h2 class="section-title">Engineered for Seamless Learning</h2>
-          <p class="section-desc">
-            Everything you need to study, translate, research, and follow videos with confidence.
-          </p>
+          <span class="section-tag">Features</span>
+          <h2 class="section-title">Clean, Focused Subtitle Tools</h2>
+          <p class="section-desc">Designed to be unobtrusive, reliable, and lightweight.</p>
         </div>
 
         <div class="features-grid">
-          <!-- Feature 1 -->
           <div class="feature-card">
-            <div class="feature-icon-badge">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2" y="4" width="20" height="16" rx="2"></rect>
-                <line x1="7" y1="15" x2="17" y2="15"></line>
-                <line x1="7" y1="10" x2="13" y2="10"></line>
-              </svg>
-            </div>
-            <h3 class="feature-title">Native YouTube Button</h3>
+            <h3 class="feature-title">Synchronized Dual Rows</h3>
             <p class="feature-desc">
-              Cadence injects a dedicated "Transcript" button right into the YouTube action bar between Like/Dislike and Share for instant 1-click access.
+              Follow original spoken lines and their translations stacked in synchronized dual rows with automatic scrolling.
             </p>
           </div>
 
-          <!-- Feature 2 -->
           <div class="feature-card">
-            <div class="feature-icon-badge">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="2" y1="12" x2="22" y2="12"></line>
-                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-              </svg>
-            </div>
-            <h3 class="feature-title">Bilingual Dual Subtitles</h3>
-            <p class="feature-desc">
-              Follow the speaker's exact original words alongside your preferred translation language in clear, stacked, synchronized dual rows.
-            </p>
-          </div>
-
-          <!-- Feature 3 -->
-          <div class="feature-card">
-            <div class="feature-icon-badge">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="23 4 23 10 17 10"></polyline>
-                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-              </svg>
-            </div>
-            <h3 class="feature-title">Live Playback Seeking</h3>
-            <p class="feature-desc">
-              Every sentence features an interactive timestamp. Click any line to jump the video directly to that scene with smooth auto-scroll.
-            </p>
-          </div>
-
-          <!-- Feature 4 -->
-          <div class="feature-card">
-            <div class="feature-icon-badge">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-              </svg>
-            </div>
-            <h3 class="feature-title">Lightning Fast Search</h3>
-            <p class="feature-desc">
-              Search across both original spoken lines and translated text simultaneously with highlighted matching terms to find exact quotes in seconds.
-            </p>
-          </div>
-
-          <!-- Feature 5 -->
-          <div class="feature-card">
-            <div class="feature-icon-badge">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="17 8 12 3 7 8"></polyline>
-                <line x1="12" y1="3" x2="12" y2="15"></line>
-              </svg>
-            </div>
             <h3 class="feature-title">SRT, VTT &amp; Text Import</h3>
             <p class="feature-desc">
-              Video has no closed captions? Drag &amp; drop your own SRT, WebVTT, JSON, or paste custom text directly into Cadence's universal parser.
+              Upload <code>.srt</code>, <code>.vtt</code>, <code>.txt</code>, or <code>.json</code> files, or paste any transcript text directly into the panel.
             </p>
           </div>
 
-          <!-- Feature 6 -->
           <div class="feature-card">
-            <div class="feature-icon-badge">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
-              </svg>
-            </div>
-            <h3 class="feature-title">Adaptive Theme Match</h3>
+            <h3 class="feature-title">Interactive Playback Seeking</h3>
             <p class="feature-desc">
-              Cadence detects YouTube's theme changes in real time and automatically adapts between dark and light modes for seamless aesthetics.
+              Click any dialogue timestamp to jump video playback directly to that moment with zero lag.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <h3 class="feature-title">Instant Full-Text Search</h3>
+            <p class="feature-desc">
+              Search across both original and translated lines simultaneously with real-time keyword highlighting.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <h3 class="feature-title">20+ Languages</h3>
+            <p class="feature-desc">
+              Translate uploaded or pasted subtitles into Spanish, French, German, Japanese, Korean, and more.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <h3 class="feature-title">Privacy First</h3>
+            <p class="feature-desc">
+              No telemetry, tracking, or accounts. Transcripts and language preferences stay entirely in your browser.
             </p>
           </div>
         </div>
@@ -399,28 +298,28 @@
     <section class="how-it-works-section" id="how-it-works">
       <div class="container">
         <div class="section-header">
-          <span class="section-tag">Quick Setup</span>
-          <h2 class="section-title">Up and Running in 3 Steps</h2>
-          <p class="section-desc">No complicated API keys, no chrome://flags to configure.</p>
+          <span class="section-tag">Workflow</span>
+          <h2 class="section-title">How It Works</h2>
+          <p class="section-desc">Three simple steps to bilingual subtitles.</p>
         </div>
 
         <div class="steps-container">
           <div class="step-card">
             <span class="step-number">1</span>
-            <h3 class="step-title">Add Extension</h3>
-            <p class="step-desc">Install Cadence from the Chrome Web Store with a single click. No account registration needed.</p>
+            <h3 class="step-title">Open Video</h3>
+            <p class="step-desc">Go to any YouTube video and click the <strong>Transcript</strong> button next to Like/Dislike.</p>
           </div>
 
           <div class="step-card">
             <span class="step-number">2</span>
-            <h3 class="step-title">Play Any Video</h3>
-            <p class="step-desc">Open any YouTube video. The sleek Cadence "Transcript" button appears right under the player.</p>
+            <h3 class="step-title">Upload or Paste</h3>
+            <p class="step-desc">Upload your <code>.srt</code>, <code>.vtt</code>, or <code>.txt</code> file, or paste your transcript lines.</p>
           </div>
 
           <div class="step-card">
             <span class="step-number">3</span>
-            <h3 class="step-title">Translate &amp; Learn</h3>
-            <p class="step-desc">Pick your language to enjoy dual bilingual subtitles, jump to key moments, or search quotes.</p>
+            <h3 class="step-title">Enjoy Subtitles</h3>
+            <p class="step-desc">Select your preferred translation language for instant dual-row synchronized subtitles.</p>
           </div>
         </div>
       </div>
@@ -430,31 +329,31 @@
     <section class="languages-section" id="languages">
       <div class="container">
         <div class="section-header">
-          <span class="section-tag">Global Communication</span>
-          <h2 class="section-title">20+ Languages Ready Out-of-the-Box</h2>
-          <p class="section-desc">Instant batch bilingual translation without rate limits or pauses.</p>
+          <span class="section-tag">Languages</span>
+          <h2 class="section-title">Supported Translation Languages</h2>
+          <p class="section-desc">Instant batch translation without external subscriptions.</p>
         </div>
 
         <div class="languages-chip-grid">
-          <div class="lang-chip"><span class="lang-flag">🇺🇸</span> English</div>
-          <div class="lang-chip"><span class="lang-flag">🇪🇸</span> Spanish (Español)</div>
-          <div class="lang-chip"><span class="lang-flag">🇫🇷</span> French (Français)</div>
-          <div class="lang-chip"><span class="lang-flag">🇩🇪</span> German (Deutsch)</div>
-          <div class="lang-chip"><span class="lang-flag">🇮🇹</span> Italian (Italiano)</div>
-          <div class="lang-chip"><span class="lang-flag">🇵🇹</span> Portuguese (Português)</div>
-          <div class="lang-chip"><span class="lang-flag">🇷🇺</span> Russian (Русский)</div>
-          <div class="lang-chip"><span class="lang-flag">🇨🇳</span> Chinese (中文)</div>
-          <div class="lang-chip"><span class="lang-flag">🇯🇵</span> Japanese (日本語)</div>
-          <div class="lang-chip"><span class="lang-flag">🇰🇷</span> Korean (한국어)</div>
-          <div class="lang-chip"><span class="lang-flag">🇸🇦</span> Arabic (العربية)</div>
-          <div class="lang-chip"><span class="lang-flag">🇮🇳</span> Hindi (हिन्दी)</div>
-          <div class="lang-chip"><span class="lang-flag">🇧🇩</span> Bengali (বাংলা)</div>
-          <div class="lang-chip"><span class="lang-flag">🇹🇷</span> Turkish (Türkçe)</div>
-          <div class="lang-chip"><span class="lang-flag">🇳🇱</span> Dutch (Nederlands)</div>
-          <div class="lang-chip"><span class="lang-flag">🇵🇱</span> Polish (Polski)</div>
-          <div class="lang-chip"><span class="lang-flag">🇻🇳</span> Vietnamese (Tiếng Việt)</div>
-          <div class="lang-chip"><span class="lang-flag">🇮🇩</span> Indonesian (Bahasa)</div>
-          <div class="lang-chip"><span class="lang-flag">🇺🇦</span> Ukrainian (Українська)</div>
+          <div class="lang-chip">English</div>
+          <div class="lang-chip">Spanish (Español)</div>
+          <div class="lang-chip">French (Français)</div>
+          <div class="lang-chip">German (Deutsch)</div>
+          <div class="lang-chip">Italian (Italiano)</div>
+          <div class="lang-chip">Portuguese (Português)</div>
+          <div class="lang-chip">Russian (Русский)</div>
+          <div class="lang-chip">Chinese (中文)</div>
+          <div class="lang-chip">Japanese (日本語)</div>
+          <div class="lang-chip">Korean (한국어)</div>
+          <div class="lang-chip">Arabic (العربية)</div>
+          <div class="lang-chip">Hindi (हिन्दी)</div>
+          <div class="lang-chip">Bengali (বাংলা)</div>
+          <div class="lang-chip">Turkish (Türkçe)</div>
+          <div class="lang-chip">Dutch (Nederlands)</div>
+          <div class="lang-chip">Polish (Polski)</div>
+          <div class="lang-chip">Vietnamese (Tiếng Việt)</div>
+          <div class="lang-chip">Indonesian (Bahasa)</div>
+          <div class="lang-chip">Ukrainian (Українська)</div>
         </div>
       </div>
     </section>
@@ -463,57 +362,44 @@
     <section class="faq-section" id="faq">
       <div class="container">
         <div class="section-header">
-          <span class="section-tag">Frequently Asked Questions</span>
-          <h2 class="section-title">Common Questions &amp; Answers</h2>
-          <p class="section-desc">Everything you need to know about how Cadence operates.</p>
+          <span class="section-tag">FAQ</span>
+          <h2 class="section-title">Frequently Asked Questions</h2>
         </div>
 
         <div class="faq-list">
           <div class="faq-item open">
             <button type="button" class="faq-question-btn" aria-expanded="true">
-              <span>How does Cadence extract YouTube subtitles?</span>
-              <svg class="faq-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </button>
-            <div class="faq-answer">
-              Cadence interfaces directly with YouTube's player response session in the page context. This allows it to fetch high-fidelity timed text caption tracks directly, without simulating button clicks or interfering with YouTube's native UI panels.
-            </div>
-          </div>
-
-          <div class="faq-item">
-            <button type="button" class="faq-question-btn" aria-expanded="false">
               <span>Do I need an API key or paid subscription?</span>
-              <svg class="faq-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="faq-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
             </button>
             <div class="faq-answer">
-              No. Cadence is 100% free and requires zero configuration, API keys, or accounts. Translation is handled seamlessly via background batch processing.
+              No. Cadence is 100% free and requires no API keys, accounts, or setup.
             </div>
           </div>
 
           <div class="faq-item">
             <button type="button" class="faq-question-btn" aria-expanded="false">
-              <span>Can I upload custom subtitles if the video doesn't have any?</span>
-              <svg class="faq-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <span>What subtitle file formats are supported?</span>
+              <svg class="faq-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
             </button>
             <div class="faq-answer">
-              Yes! Cadence includes a universal parser that supports SRT, WebVTT, JSON, and raw timestamped text copy-pasted from any source.
+              You can upload SRT (.srt), WebVTT (.vtt), text files (.txt), JSON, or paste timestamped lines directly.
             </div>
           </div>
 
           <div class="faq-item">
             <button type="button" class="faq-question-btn" aria-expanded="false">
-              <span>Does Cadence track my browsing history or collect personal data?</span>
-              <svg class="faq-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <span>Does Cadence track my browsing history?</span>
+              <svg class="faq-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
             </button>
             <div class="faq-answer">
-              No. Cadence only runs on YouTube watch pages. It does not collect, sell, or store any personal browsing history. Transcripts and language preferences are stored strictly locally in your browser's localStorage.
+              No. Cadence only runs on YouTube watch pages. It does not collect or transmit personal browsing history. Transcripts and language preferences are stored strictly in local browser storage.
             </div>
           </div>
         </div>
@@ -524,17 +410,12 @@
     <section class="cta-banner-section">
       <div class="container">
         <div class="cta-banner-card">
-          <h2 class="cta-banner-title">Elevate Your YouTube Experience Today</h2>
+          <h2 class="cta-banner-title">Start Learning with Cadence</h2>
           <p class="cta-banner-desc">
-            Transform foreign language learning, research, and video comprehension with instant bilingual transcripts.
+            Install the free Chrome extension and follow foreign YouTube videos with dual bilingual subtitles.
           </p>
           <a href="https://chrome.google.com/webstore" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-lg" id="banner-cta-install">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="7 10 12 15 17 10"></polyline>
-              <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
-            Install Cadence for Chrome — Free
+            Add to Chrome — Free
           </a>
         </div>
       </div>
@@ -543,25 +424,21 @@
 
   <!-- Site Footer -->
   <footer class="site-footer">
-    <div class="container">
-      <div class="footer-content">
-        <div class="footer-brand">
-          <img src="assets/images/logo.svg" alt="Cadence Logo" width="28" height="28">
-          <span style="font-weight: 700; font-size: 1.1rem; color: #fff;">Cadence</span>
-        </div>
-
-        <ul class="footer-links">
-          <li><a href="#features" class="footer-link">Features</a></li>
-          <li><a href="#demo" class="footer-link">Live Demo</a></li>
-          <li><a href="#languages" class="footer-link">Languages</a></li>
-          <li><a href="#faq" class="footer-link">FAQ</a></li>
-          <li><a href="https://github.com/ichshakib/cadence" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a></li>
-        </ul>
+    <div class="container footer-container">
+      <div class="footer-brand">
+        <img src="assets/images/logo.svg" alt="Cadence Logo" width="20" height="20">
+        <span>Cadence</span>
       </div>
 
-      <div class="footer-bottom">
-        <p>&copy; 2026 Cadence • YouTube Transcript &amp; Bilingual Subtitles. Released under the MIT License.</p>
-      </div>
+      <ul class="footer-links">
+        <li><a href="#features" class="footer-link">Features</a></li>
+        <li><a href="#demo" class="footer-link">Demo</a></li>
+        <li><a href="#languages" class="footer-link">Languages</a></li>
+        <li><a href="#faq" class="footer-link">FAQ</a></li>
+        <li><a href="https://github.com/ichshakib/cadence" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a></li>
+      </ul>
+
+      <p class="footer-copy">&copy; 2026 Cadence. MIT License.</p>
     </div>
   </footer>
 

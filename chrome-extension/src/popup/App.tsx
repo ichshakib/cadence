@@ -1,11 +1,5 @@
 import { useState, useEffect } from 'react'
-import {
-  Captions,
-  Languages,
-  ExternalLink,
-  Upload,
-  FileText,
-} from 'lucide-react'
+import { Captions, Languages, ExternalLink, ArrowUpRight } from 'lucide-react'
 import {
   SUPPORTED_LANGUAGES,
   getStoredTargetLanguage,
@@ -64,47 +58,42 @@ export default function App() {
   }
 
   return (
-    <div className="cadence-popup-root">
-      {/* Header */}
-      <header className="cadence-header">
-        <div className="cadence-logo-row">
-          <div className="cadence-icon-badge">
-            <Captions size={18} className="cadence-icon" />
-          </div>
-          <div>
-            <h1 className="cadence-title">Cadence</h1>
-            <p className="cadence-subtitle">Bilingual YouTube Subtitles</p>
-          </div>
+    <div className="cadence-popup">
+      {/* Minimal Header */}
+      <header className="popup-header">
+        <div className="popup-brand">
+          <Captions size={15} className="popup-brand-icon" />
+          <span className="popup-brand-title">Cadence</span>
         </div>
-        <span className={`cadence-status-pill ${isYouTubeTab ? 'active' : ''}`}>
-          <span className="cadence-status-dot" />
-          {isYouTubeTab ? 'YouTube Active' : 'Standby'}
+        <span className={`popup-status ${isYouTubeTab ? 'active' : ''}`}>
+          <span className="status-dot" />
+          {isYouTubeTab ? 'YouTube' : 'Standby'}
         </span>
       </header>
 
-      {/* Main Content */}
-      <main className="cadence-body">
-        {/* Quick Action Button if on YouTube watch page */}
+      {/* Main Body */}
+      <div className="popup-body">
+        {/* On-Page Action if on YouTube */}
         {isYouTubeTab && (
           <button
             type="button"
-            className="cadence-action-btn primary"
+            className="popup-btn popup-btn-action"
             onClick={toggleTranscriptOnPage}
           >
-            <Captions size={14} />
-            Open Transcript Panel on Page
+            <span>Open Transcript on Page</span>
+            <ArrowUpRight size={13} />
           </button>
         )}
 
-        {/* Default Translation Language */}
-        <section className="cadence-section">
-          <label htmlFor="pref-lang" className="cadence-section-label">
-            <Languages size={14} />
-            <span>Default Translation Language</span>
+        {/* Translation Language Selector */}
+        <div className="popup-field">
+          <label htmlFor="pref-lang" className="popup-label">
+            <Languages size={12} />
+            <span>Translation Language</span>
           </label>
           <select
             id="pref-lang"
-            className="cadence-select"
+            className="popup-select"
             value={targetLang}
             onChange={(e) => handleLangChange(e.target.value)}
           >
@@ -114,36 +103,26 @@ export default function App() {
               </option>
             ))}
           </select>
-          <p className="cadence-section-hint">
-            Uploaded and pasted transcripts will be translated into this language.
-          </p>
-        </section>
+        </div>
 
-        {/* How to use */}
-        <section className="cadence-section cadence-guide-box">
-          <div className="cadence-guide-title">
-            <FileText size={13} />
-            <span>How to add transcripts</span>
+        {/* Minimal Instructions */}
+        <div className="popup-guide">
+          <div className="guide-item">
+            <span className="guide-num">1</span>
+            <span>Click <strong>Transcript</strong> below any YouTube video</span>
           </div>
-          <ol className="cadence-guide-list">
-            <li>
-              Click the <strong>Transcript</strong> button below the video (between Like/Dislike and Share).
-            </li>
-            <li>
-              Click <strong>Upload File</strong> (<Upload size={11} style={{ display: 'inline', verticalAlign: 'middle' }} />) for <code>.srt</code>, <code>.vtt</code>, <code>.txt</code>, or <code>.json</code>.
-            </li>
-            <li>
-              Or click <strong>Paste</strong> to paste timestamped lines or text directly.
-            </li>
-          </ol>
-        </section>
-      </main>
+          <div className="guide-item">
+            <span className="guide-num">2</span>
+            <span>Upload <code>.srt</code>, <code>.vtt</code>, <code>.txt</code> or paste lines</span>
+          </div>
+        </div>
+      </div>
 
       {/* Minimal Footer */}
-      <footer className="cadence-footer">
-        <span>Cadence v1.0</span>
-        <button type="button" className="cadence-link-btn" onClick={openYouTube}>
-          YouTube <ExternalLink size={11} />
+      <footer className="popup-footer">
+        <span>v1.0</span>
+        <button type="button" className="footer-link" onClick={openYouTube}>
+          youtube.com <ExternalLink size={10} />
         </button>
       </footer>
     </div>
