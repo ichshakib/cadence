@@ -38,7 +38,6 @@
       <nav aria-label="Main Navigation">
         <ul class="nav-menu">
           <li><a href="#features" class="nav-link">Features</a></li>
-          <li><a href="#demo" class="nav-link">Demo</a></li>
           <li><a href="#how-it-works" class="nav-link">How It Works</a></li>
           <li><a href="#languages" class="nav-link">Languages</a></li>
           <li><a href="#faq" class="nav-link">FAQ</a></li>
@@ -74,8 +73,8 @@
           <a href="https://github.com/ichshakib/cadence/releases/download/v1.0.0/cadence-1.0.0.zip" class="btn btn-primary btn-lg" id="hero-cta-install" download>
             Download Extension — Free (v1.0.0 ZIP)
           </a>
-          <a href="#demo" class="btn btn-secondary btn-lg" id="hero-cta-demo">
-            Interactive Demo
+          <a href="#features" class="btn btn-secondary btn-lg" id="hero-cta-features">
+            Explore Features
           </a>
         </div>
 
@@ -96,156 +95,7 @@
       </div>
     </section>
 
-    <!-- Interactive Live Demo Section -->
-    <section class="demo-section" id="demo">
-      <div class="container">
-        <div class="section-header">
-          <span class="section-tag">Interactive Preview</span>
-          <h2 class="section-title">See Cadence in Action</h2>
-          <p class="section-desc">
-            Test real-time language switching, timestamp seeking, and subtitle search below.
-          </p>
-        </div>
 
-        <div class="demo-showcase-container">
-          <!-- Left: Mock YouTube Player -->
-          <div class="demo-player-panel">
-            <div class="player-video-viewport" id="demo-video-viewport">
-              <div class="player-simulated-video">
-                <span class="video-scene-badge">Sample Video</span>
-                <h3 class="video-scene-title">Understanding Speech Cadence</h3>
-                <p class="video-scene-channel">Cadence AI • 1.2M views</p>
-              </div>
-
-              <!-- Real-time Bilingual Subtitle Overlay -->
-              <div class="video-overlay-subtitles" id="demo-subtitles-overlay">
-                <div class="overlay-sub-original" id="video-sub-orig">
-                  Welcome back everyone. Today we are exploring modern speech AI.
-                </div>
-                <div class="overlay-sub-translated" id="video-sub-trans">
-                  <span>↳</span>
-                  <span>Bienvenidos a todos. Hoy estamos explorando la IA del habla moderna.</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Video Controls Bar -->
-            <div class="player-controls-bar">
-              <div class="timeline-progress-track" id="demo-timeline-track" title="Click to seek">
-                <div class="timeline-progress-fill" id="demo-progress-fill"></div>
-              </div>
-
-              <div class="player-controls-actions">
-                <div class="player-ctrl-left">
-                  <button type="button" class="player-btn-play" id="demo-play-btn" aria-label="Play / Pause Demo">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                      <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                    </svg>
-                  </button>
-                  <span class="player-time-display" id="demo-time-display">00:04 / 01:05</span>
-                </div>
-                <span class="player-hint-text">Click any line to jump</span>
-              </div>
-            </div>
-
-            <!-- YouTube Action Bar Mock -->
-            <div class="player-actions-mock">
-              <span class="yt-action-note">Injected under video:</span>
-              <div class="yt-button-bar-mock">
-                <button type="button" class="yt-mock-btn">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
-                  </svg>
-                  18K
-                </button>
-                <button type="button" class="yt-mock-btn active-transcript" id="demo-transcript-action-btn">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="2" y="4" width="20" height="16" rx="2"></rect>
-                    <line x1="7" y1="15" x2="17" y2="15"></line>
-                    <line x1="7" y1="10" x2="13" y2="10"></line>
-                  </svg>
-                  Transcript
-                </button>
-                <button type="button" class="yt-mock-btn">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="18" cy="5" r="3"></circle>
-                    <circle cx="6" cy="12" r="3"></circle>
-                    <circle cx="18" cy="19" r="3"></circle>
-                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                  </svg>
-                  Share
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Right: Cadence In-Page Transcript Card Mock -->
-          <div class="demo-transcript-panel">
-            <div class="transcript-panel-header">
-              <div class="transcript-header-info">
-                <span class="transcript-card-title">Cadence Transcript</span>
-                <span class="transcript-line-badge">6 lines</span>
-              </div>
-
-              <div class="transcript-controls">
-                <select class="lang-select-box" id="demo-lang-select" aria-label="Select Target Translation Language">
-                  <option value="es">Spanish (Español)</option>
-                  <option value="fr">French (Français)</option>
-                  <option value="de">German (Deutsch)</option>
-                  <option value="ja">Japanese (日本語)</option>
-                  <option value="ko">Korean (한국어)</option>
-                  <option value="bn">Bengali (বাংলা)</option>
-                  <option value="zh">Chinese (中文)</option>
-                </select>
-
-                <button type="button" class="transcript-icon-btn active" id="demo-subtitles-toggle-btn" title="Toggle On-Video Subtitles" aria-label="Toggle On-Video Subtitles">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="2" y="4" width="20" height="16" rx="2"></rect>
-                    <line x1="7" y1="15" x2="17" y2="15"></line>
-                    <line x1="7" y1="10" x2="13" y2="10"></line>
-                  </svg>
-                </button>
-
-                <button type="button" class="transcript-icon-btn" id="demo-copy-btn" title="Copy Transcript" aria-label="Copy Transcript">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                  </svg>
-                </button>
-
-                <button type="button" class="transcript-icon-btn active" title="Auto-scroll active" aria-label="Auto-scroll active">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="23 4 23 10 17 10"></polyline>
-                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            <!-- Search Bar -->
-            <div class="transcript-search-container">
-              <svg class="search-icon-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-              </svg>
-              <input
-                type="text"
-                id="demo-search-input"
-                class="transcript-search-input"
-                placeholder="Search transcript or translation..."
-                aria-label="Search Transcript"
-              >
-            </div>
-
-            <!-- Scrollable Subtitle Line List -->
-            <div class="transcript-scroll-area" id="demo-transcript-list" role="region" aria-label="Transcript Subtitle List">
-              <!-- Dynamically populated by main.js -->
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
 
     <!-- Key Features Section -->
     <section class="features-section" id="features">
@@ -459,7 +309,7 @@
 
       <ul class="footer-links">
         <li><a href="#features" class="footer-link">Features</a></li>
-        <li><a href="#demo" class="footer-link">Demo</a></li>
+        <li><a href="#how-it-works" class="footer-link">How It Works</a></li>
         <li><a href="#languages" class="footer-link">Languages</a></li>
         <li><a href="#faq" class="footer-link">FAQ</a></li>
         <li><a href="https://github.com/ichshakib/cadence" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a></li>

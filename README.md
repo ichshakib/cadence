@@ -33,6 +33,7 @@
 ## Table of Contents
 
 - [Overview](#overview)
+- [App Demo](#app-demo)
 - [Key Features](#key-features)
 - [How It Works](#how-it-works)
 - [Project Architecture](#project-architecture)
@@ -64,6 +65,28 @@
 Unlike conventional tools that require switching tabs, copy-pasting URLs, or clicking through clunky native YouTube menus, Cadence injects a dedicated **"Transcript"** button directly into YouTube's action bar (between Like/Dislike and Share). With a single click, users can view synchronized transcripts, toggle **dual-language bilingual subtitles** in over 20 languages, search through dialogues in milliseconds, and jump playback to any timestamp.
 
 Operating entirely client-side, Cadence interfaces with YouTube's player response data without simulating button clicks, ensuring seamless, zero-flicker performance.
+
+---
+
+## App Demo
+
+<p align="center">
+  <img src="assets/app_demo/dark-mode.png" alt="Cadence in Dark Mode" width="100%" />
+</p>
+
+<p align="center">
+  <em><strong>Dark Mode:</strong> Cadence in action &mdash; native YouTube action bar button, synchronized bilingual transcript panel (Japanese), active playback tracking, and on-video subtitle overlay.</em>
+</p>
+
+<br />
+
+<p align="center">
+  <img src="assets/app_demo/light-mode.png" alt="Cadence in Light Mode" width="100%" />
+</p>
+
+<p align="center">
+  <em><strong>Light Mode:</strong> Cadence in action &mdash; adaptive YouTube theme matching, live subtitle overlay, and responsive dialogue seeking.</em>
+</p>
 
 ---
 
@@ -165,7 +188,8 @@ cadence/
 │   ├── manifest.config.ts         # Chrome Manifest V3 configuration (@crxjs/vite-plugin)
 │   ├── vite.config.ts             # Vite build & CRX packaging configuration
 │   └── package.json               # Extension dependencies and scripts
-├── assets/                        # Official landing page assets
+├── assets/                        # Official landing page & showcase assets
+│   ├── app_demo/                  # Extension UI demo screenshots
 │   ├── css/style.css              # Landing page styling
 │   ├── js/main.js                 # Landing page interactive transcript simulator
 │   └── images/                    # Landing page media & favicon_io set
