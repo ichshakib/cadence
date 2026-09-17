@@ -201,3 +201,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true
   }
 })
+
+// When the user clicks the extension toolbar icon (popup is disabled), toggle the on-page transcript if on YouTube
+if (typeof chrome !== 'undefined' && chrome.action?.onClicked) {
+  chrome.action.onClicked.addListener((tab) => {
+    if (tab?.id && tab.url && tab.url.includes('youtube.com')) {
+      chrome.scripting
+        .executeScript({
+          target: { tabId: tab.id },
+          world: 'MAIN',
+          func: () => {
+            window.dispatchEvent(new CustomEvent('cadence-transcript-panel-toggle-click'))
+          },
+        })
+        .catch(() => {})
+    }
+  })
+}
+

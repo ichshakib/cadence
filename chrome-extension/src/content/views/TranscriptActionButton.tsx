@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Captions } from 'lucide-react'
 import { useYouTubeTheme } from '../hooks/useYouTubeTheme.ts'
-import { isPanelOpen, setPanelOpen, ensurePanelInjected } from '../panelState.ts'
+import { isPanelOpen, setPanelOpen, togglePanelOpen, ensurePanelInjected } from '../panelState.ts'
 
 export default function TranscriptActionButton() {
   const theme = useYouTubeTheme()
@@ -14,9 +14,19 @@ export default function TranscriptActionButton() {
         setIsOpen(detail.isOpen)
       }
     }
+
+    const handleToggleClick = () => {
+      const next = togglePanelOpen()
+      if (next) {
+        ensurePanelInjected()
+      }
+    }
+
     window.addEventListener('cadence-transcript-panel-toggle', handleToggle)
+    window.addEventListener('cadence-transcript-panel-toggle-click', handleToggleClick)
     return () => {
       window.removeEventListener('cadence-transcript-panel-toggle', handleToggle)
+      window.removeEventListener('cadence-transcript-panel-toggle-click', handleToggleClick)
     }
   }, [])
 

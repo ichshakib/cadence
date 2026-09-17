@@ -19,7 +19,7 @@ export default defineManifest({
       48: 'public/icons/icon48.png',
       128: 'public/icons/icon128.png',
     },
-    default_popup: 'src/popup/index.html',
+    default_title: 'Cadence - Bilingual YouTube Subtitles',
   },
   permissions: [
     'sidePanel',
