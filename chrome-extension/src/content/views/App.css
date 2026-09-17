@@ -950,5 +950,109 @@ ytd-watch-flexy[fullscreen] .yt-transcript-body {
   max-height: 380px;
 }
 
+/* =============================================================
+   Cadence Video Player Subtitle Overlay
+   Displays real-time synced transcripts & translations on the player
+   ============================================================= */
+#cadence-video-overlay-container {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 74px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+  z-index: 55;
+  transition: bottom 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* When YouTube controls auto-hide during video playback */
+#movie_player.ytp-autohide #cadence-video-overlay-container,
+.html5-video-player.ytp-autohide #cadence-video-overlay-container {
+  bottom: 28px;
+}
+
+/* YouTube Fullscreen mode */
+#movie_player.ytp-fullscreen #cadence-video-overlay-container,
+.html5-video-player.ytp-fullscreen #cadence-video-overlay-container {
+  bottom: 92px;
+}
+
+#movie_player.ytp-fullscreen.ytp-autohide #cadence-video-overlay-container,
+.html5-video-player.ytp-fullscreen.ytp-autohide #cadence-video-overlay-container {
+  bottom: 44px;
+}
+
+/* Hide on miniplayer */
+#movie_player.ytp-miniplayer #cadence-video-overlay-container,
+.html5-video-player.ytp-miniplayer #cadence-video-overlay-container {
+  display: none !important;
+}
+
+.cadence-video-subtitle-card {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  max-width: 82%;
+  padding: 8px 18px;
+  background: rgba(10, 15, 29, 0.84);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.65);
+  text-align: center;
+  pointer-events: none;
+  user-select: none;
+  animation: cadenceSubFadeIn 0.16s ease-out;
+}
+
+@keyframes cadenceSubFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.cadence-sub-line-orig {
+  font-family: 'YouTube Sans', 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  color: #ffffff;
+  line-height: 1.4;
+  letter-spacing: 0.2px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 8px rgba(0, 0, 0, 0.6);
+  word-break: break-word;
+}
+
+.cadence-sub-line-trans {
+  font-family: 'YouTube Sans', 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: #38bdf8;
+  line-height: 1.4;
+  letter-spacing: 0.15px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+  word-break: break-word;
+}
+
+/* Fullscreen typography scaling */
+#movie_player.ytp-fullscreen .cadence-sub-line-orig,
+.html5-video-player.ytp-fullscreen .cadence-sub-line-orig {
+  font-size: 24px;
+}
+
+#movie_player.ytp-fullscreen .cadence-sub-line-trans,
+.html5-video-player.ytp-fullscreen .cadence-sub-line-trans {
+  font-size: 21px;
+}
+
+
 
 

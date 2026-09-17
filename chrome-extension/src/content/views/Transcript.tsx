@@ -16,6 +16,7 @@ import {
   UploadCloud,
   CornerDownRight,
   Search,
+  Subtitles,
 } from 'lucide-react'
 import type { TranscriptData, TranscriptSegment } from '../types.ts'
 import {
@@ -55,6 +56,29 @@ export default function Transcript() {
   const [translateProgress, setTranslateProgress] = useState<{ done: number; total: number } | null>(null)
   const [translateError, setTranslateError] = useState<string | null>(null)
   const [showTranslation, setShowTranslation] = useState<boolean>(true)
+  const [isVideoOverlayEnabled, setIsVideoOverlayEnabled] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('cadence_video_overlay_enabled') === 'true'
+    } catch {
+      return false
+    }
+  })
+
+  // Toggle Video Player Subtitle Overlay
+  const toggleVideoOverlay = useCallback(() => {
+    setIsVideoOverlayEnabled((prev) => {
+      const next = !prev
+      try {
+        localStorage.setItem('cadence_video_overlay_enabled', String(next))
+      } catch {}
+      window.dispatchEvent(
+        new CustomEvent('cadence-video-overlay-toggle', {
+          detail: { enabled: next },
+        })
+      )
+      return next
+    })
+  }, [])
 
   // Paste dialog / input state
   const [isPasteOpen, setIsPasteOpen] = useState<boolean>(false)
@@ -70,6 +94,30 @@ export default function Transcript() {
   useEffect(() => {
     transcriptDataRef.current = transcriptData
   }, [transcriptData])
+
+  // Sync transcript and translation visibility changes with the video overlay
+  useEffect(() => {
+    window.dispatchEvent(
+      new CustomEvent('cadence-transcript-updated', {
+        detail: { transcriptData, showTranslation },
+      })
+    )
+  }, [transcriptData, showTranslation])
+
+  // Respond to query from newly mounted VideoOverlay
+  useEffect(() => {
+    const handleRequest = () => {
+      window.dispatchEvent(
+        new CustomEvent('cadence-transcript-updated', {
+          detail: { transcriptData, showTranslation },
+        })
+      )
+    }
+    window.addEventListener('cadence-request-transcript', handleRequest)
+    return () => {
+      window.removeEventListener('cadence-request-transcript', handleRequest)
+    }
+  }, [transcriptData, showTranslation])
 
   const performTranslationRef = useRef<(langToUse: string) => Promise<void>>(async () => {})
 
@@ -527,6 +575,20 @@ export default function Transcript() {
                   ) : (
                     <Languages size={16} />
                   )}
+                </button>
+
+                <button
+                  type="button"
+                  className={`yt-transcript-icon-btn ${isVideoOverlayEnabled ? 'active' : ''}`}
+                  title={
+                    isVideoOverlayEnabled
+                      ? 'Subtitles on Video Player: ON (Click to hide on player)'
+                      : 'Subtitles on Video Player: OFF (Click to show on player)'
+                  }
+                  onClick={toggleVideoOverlay}
+                  aria-label="Toggle subtitles on video player"
+                >
+                  <Subtitles size={16} />
                 </button>
 
                 <button

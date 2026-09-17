@@ -3,13 +3,16 @@ import { StrictMode } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import App from './views/App.tsx'
 import TranscriptActionButton from './views/TranscriptActionButton.tsx'
+import VideoOverlay from './views/VideoOverlay.tsx'
 import type { TargetInsertion } from './types.ts'
 import { registerPanelInjector } from './panelState.ts'
 
 const PANEL_CONTAINER_ID = 'yt-playlist-top-injected'
 const ACTION_BTN_CONTAINER_ID = 'yt-transcript-action-btn-injected'
+const VIDEO_OVERLAY_CONTAINER_ID = 'cadence-video-overlay-container'
 
 let panelRoot: Root | null = null
+let overlayRoot: Root | null = null
 
 function isElementVisible(el: HTMLElement | null): boolean {
   if (!el) return false
@@ -261,9 +264,57 @@ function injectActionButton(): boolean {
   }
 }
 
+function getPlayerElement(): HTMLElement | null {
+  return (
+    document.getElementById('movie_player') ||
+    document.querySelector<HTMLElement>('.html5-video-player') ||
+    document.querySelector<HTMLElement>('ytd-player') ||
+    document.querySelector<HTMLElement>('.video-stream.html5-main-video')?.parentElement ||
+    null
+  )
+}
+
+function injectVideoOverlay(): boolean {
+  const isWatch = window.location.pathname.startsWith('/watch') || !!document.querySelector('video')
+  if (!isWatch) return false
+
+  const player = getPlayerElement()
+  if (!player) return false
+
+  let existing = document.getElementById(VIDEO_OVERLAY_CONTAINER_ID)
+  if (existing && existing.parentElement === player) {
+    return true
+  }
+
+  if (existing && existing.parentElement !== player) {
+    existing.remove()
+    existing = null
+    overlayRoot = null
+  }
+
+  const container = document.createElement('div')
+  container.id = VIDEO_OVERLAY_CONTAINER_ID
+  player.appendChild(container)
+
+  try {
+    overlayRoot = createRoot(container)
+    overlayRoot.render(
+      <StrictMode>
+        <VideoOverlay />
+      </StrictMode>
+    )
+    console.log('[Cadence] Injected Video Overlay container into YouTube player successfully!')
+    return true
+  } catch (err) {
+    console.error('[Cadence] Video overlay injection error:', err)
+    return false
+  }
+}
+
 function injectAll() {
   injectPanel()
   injectActionButton()
+  injectVideoOverlay()
 }
 
 function init() {
@@ -306,7 +357,11 @@ function init() {
         (existingActionBtn.parentElement !== targetActionBtn.parent ||
           existingActionBtn.nextElementSibling !== targetActionBtn.before))
 
-    if (panelNeedsUpdate || btnNeedsUpdate) {
+    const existingOverlay = document.getElementById(VIDEO_OVERLAY_CONTAINER_ID)
+    const playerEl = getPlayerElement()
+    const overlayNeedsUpdate = !existingOverlay || (playerEl && existingOverlay.parentElement !== playerEl)
+
+    if (panelNeedsUpdate || btnNeedsUpdate || overlayNeedsUpdate) {
       if (debounceTimer) clearTimeout(debounceTimer)
       debounceTimer = window.setTimeout(() => {
         injectAll()
