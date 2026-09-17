@@ -199,6 +199,14 @@
                   <option value="zh">Chinese (中文)</option>
                 </select>
 
+                <button type="button" class="transcript-icon-btn active" id="demo-subtitles-toggle-btn" title="Toggle On-Video Subtitles" aria-label="Toggle On-Video Subtitles">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                    <line x1="7" y1="15" x2="17" y2="15"></line>
+                    <line x1="7" y1="10" x2="13" y2="10"></line>
+                  </svg>
+                </button>
+
                 <button type="button" class="transcript-icon-btn" id="demo-copy-btn" title="Copy Transcript" aria-label="Copy Transcript">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
@@ -249,6 +257,13 @@
         </div>
 
         <div class="features-grid">
+          <div class="feature-card">
+            <h3 class="feature-title">On-Video Player Subtitles</h3>
+            <p class="feature-desc">
+              Display synchronized bilingual subtitles directly on top of the YouTube video player in normal, theater, and fullscreen modes.
+            </p>
+          </div>
+
           <div class="feature-card">
             <h3 class="feature-title">Synchronized Dual Rows</h3>
             <p class="feature-desc">
@@ -319,7 +334,7 @@
           <div class="step-card">
             <span class="step-number">3</span>
             <h3 class="step-title">Enjoy Subtitles</h3>
-            <p class="step-desc">Select your preferred translation language for instant dual-row synchronized subtitles.</p>
+            <p class="step-desc">Watch bilingual subtitles in the panel or directly on the video player with one-click toggles.</p>
           </div>
         </div>
       </div>
@@ -388,6 +403,18 @@
             </button>
             <div class="faq-answer">
               You can upload SRT (.srt), WebVTT (.vtt), text files (.txt), JSON, or paste timestamped lines directly.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button type="button" class="faq-question-btn" aria-expanded="false">
+              <span>Can I see subtitles directly on the YouTube video player?</span>
+              <svg class="faq-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            <div class="faq-answer">
+              Yes! Click the Subtitles icon in the transcript panel to display subtitles directly on the video player. It works in normal view, theater mode, and fullscreen, adapting automatically when player controls auto-hide.
             </div>
           </div>
 

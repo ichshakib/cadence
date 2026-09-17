@@ -37,15 +37,15 @@ const DEMO_TRANSCRIPT = [
   {
     start: 21,
     formatted: '00:21',
-    original: 'Cadence extracts these subtitles directly inside YouTube without external tools.',
+    original: 'Cadence displays synchronized bilingual subtitles directly on your YouTube video player.',
     translations: {
-      es: 'Cadence extrae estos subtítulos directamente dentro de YouTube sin herramientas externas.',
-      fr: 'Cadence extrait ces sous-titres directement dans YouTube sans outils externes.',
-      de: 'Cadence extrahiert diese Untertitel direkt in YouTube ohne externe Tools.',
-      ja: 'Cadenceは外部ツールなしで、YouTube内で直接これらの字幕を抽出します。',
-      ko: 'Cadence는 외부 도구 없이 YouTube 내에서 이러한 자막을 직접 추출합니다.',
-      bn: 'Cadence কোনো বাহ্যিক সরঞ্জাম ছাড়াই সরাসরি YouTube-এর মধ্যে এই সাবটাইটেলগুলি সংগ্রহ করে।',
-      zh: 'Cadence 直接在 YouTube 内部提取这些字幕，无需任何外部工具。',
+      es: 'Cadence muestra subtítulos bilingües sincronizados directamente en tu reproductor de YouTube.',
+      fr: 'Cadence affiche des sous-titres bilingues synchronisés directement sur votre lecteur YouTube.',
+      de: 'Cadence zeigt synchronisierte zweisprachige Untertitel direkt auf Ihrem YouTube-Videoplayer an.',
+      ja: 'CadenceはYouTube動画プレーヤー上に直接、同期されたバイリンガル字幕を表示します。',
+      ko: 'Cadence는 YouTube 비디오 플레이어에 직접 동기화된 이중 자막을 표시합니다.',
+      bn: 'Cadence সরাসরি আপনার YouTube ভিডিও প্লেয়ারে সমন্বিত দ্বিভাষিক সাবটাইটেল প্রদর্শন করে।',
+      zh: 'Cadence 直接在 YouTube 视频播放器上显示同步的双语字幕。',
     },
   },
   {
@@ -155,6 +155,36 @@ function initDemo() {
   if (copyBtn) {
     copyBtn.addEventListener('click', copyTranscript)
   }
+
+  // Toggle On-Video Subtitles Overlay
+  const subtitlesToggleBtn = document.getElementById('demo-subtitles-toggle-btn')
+  if (subtitlesToggleBtn) {
+    subtitlesToggleBtn.addEventListener('click', toggleSubtitlesOverlay)
+  }
+}
+
+let isSubtitlesOverlayOn = true
+
+function toggleSubtitlesOverlay() {
+  isSubtitlesOverlayOn = !isSubtitlesOverlayOn
+  const btn = document.getElementById('demo-subtitles-toggle-btn')
+  const overlay = document.getElementById('demo-subtitles-overlay')
+
+  if (btn) {
+    if (isSubtitlesOverlayOn) {
+      btn.classList.add('active')
+      btn.title = 'On-Video Subtitles: ON (Click to hide)'
+    } else {
+      btn.classList.remove('active')
+      btn.title = 'On-Video Subtitles: OFF (Click to show)'
+    }
+  }
+
+  if (overlay) {
+    overlay.style.display = isSubtitlesOverlayOn ? 'inline-flex' : 'none'
+  }
+
+  showToast(isSubtitlesOverlayOn ? 'On-Video Subtitles enabled' : 'On-Video Subtitles hidden')
 }
 
 function renderTranscriptList() {
