@@ -38,10 +38,13 @@ function getFirstValidContentChild(parent: HTMLElement): HTMLElement | null {
   return null
 }
 
+function isWatchPage(): boolean {
+  return window.location.pathname.startsWith('/watch')
+}
+
 function getPanelInsertion(): TargetInsertion | null {
-  // Only inject on watch pages or pages with a video player
-  const isWatch = window.location.pathname.startsWith('/watch') || !!document.querySelector('video')
-  if (!isWatch) return null
+  // Strictly inject only on YouTube watch pages
+  if (!isWatchPage()) return null
 
   // Check if we are inside a genuinely visible playlist
   const isPlaylistUrl = window.location.search.includes('list=')
@@ -170,8 +173,7 @@ export function injectPanel(): boolean {
 
 
 function getActionBtnInsertion(): TargetInsertion | null {
-  const isWatch = window.location.pathname.startsWith('/watch') || !!document.querySelector('video')
-  if (!isWatch) return null
+  if (!isWatchPage()) return null
 
   // Find YouTube's action button bar under the video
   const buttonsContainer = document.querySelector<HTMLElement>(
@@ -275,8 +277,7 @@ function getPlayerElement(): HTMLElement | null {
 }
 
 function injectVideoOverlay(): boolean {
-  const isWatch = window.location.pathname.startsWith('/watch') || !!document.querySelector('video')
-  if (!isWatch) return false
+  if (!isWatchPage()) return false
 
   const player = getPlayerElement()
   if (!player) return false
@@ -311,7 +312,40 @@ function injectVideoOverlay(): boolean {
   }
 }
 
+function cleanupInjected() {
+  if (panelRoot) {
+    try {
+      panelRoot.unmount()
+    } catch {}
+    panelRoot = null
+  }
+  const existingPanel = document.getElementById(PANEL_CONTAINER_ID)
+  if (existingPanel) {
+    existingPanel.remove()
+  }
+
+  const existingActionBtn = document.getElementById(ACTION_BTN_CONTAINER_ID)
+  if (existingActionBtn) {
+    existingActionBtn.remove()
+  }
+
+  if (overlayRoot) {
+    try {
+      overlayRoot.unmount()
+    } catch {}
+    overlayRoot = null
+  }
+  const existingOverlay = document.getElementById(VIDEO_OVERLAY_CONTAINER_ID)
+  if (existingOverlay) {
+    existingOverlay.remove()
+  }
+}
+
 function injectAll() {
+  if (!isWatchPage()) {
+    cleanupInjected()
+    return
+  }
   injectPanel()
   injectActionButton()
   injectVideoOverlay()
@@ -333,9 +367,14 @@ function init() {
   window.addEventListener('yt-page-data-updated', () => setTimeout(injectAll, 300))
   window.addEventListener('popstate', () => setTimeout(injectAll, 200))
 
-  // MutationObserver to ensure both elements stay attached when YouTube re-renders the DOM
+  // MutationObserver to ensure elements stay attached only on watch pages
   let debounceTimer: number | undefined
   const observer = new MutationObserver(() => {
+    if (!isWatchPage()) {
+      cleanupInjected()
+      return
+    }
+
     const existingPanel = document.getElementById(PANEL_CONTAINER_ID)
     const targetPanel = getPanelInsertion()
     const existingActionBtn = document.getElementById(ACTION_BTN_CONTAINER_ID)

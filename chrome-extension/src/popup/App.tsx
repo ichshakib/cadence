@@ -120,7 +120,7 @@ export default function App() {
 
       {/* Minimal Footer */}
       <footer className="popup-footer">
-        <span>v1.0</span>
+        <span>v1.0.1</span>
         <button type="button" className="footer-link" onClick={openYouTube}>
           youtube.com <ExternalLink size={10} />
         </button>

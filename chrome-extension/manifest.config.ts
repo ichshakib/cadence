@@ -39,7 +39,7 @@ export default defineManifest({
   content_scripts: [
     {
       js: ['src/content/main.tsx'],
-      matches: ['https://*.youtube.com/*', 'https://youtube.com/*'],
+      matches: ['https://*.youtube.com/watch*', 'https://youtube.com/watch*'],
     },
   ],
   side_panel: {

@@ -13,8 +13,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/ichshakib/cadence/releases/download/v1.0.0/cadence-1.0.0.zip">
-    <img src="https://img.shields.io/badge/Download%20Extension-v1.0.0%20ZIP-0284c7?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Download Extension v1.0.0 ZIP" />
+  <a href="https://github.com/ichshakib/cadence/releases/download/v1.0.1/cadence-1.0.1.zip">
+    <img src="https://img.shields.io/badge/Download%20Extension-v1.0.1%20ZIP-0284c7?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Download Extension v1.0.1 ZIP" />
   </a>
   &nbsp;&nbsp;
   <a href="https://ichshakib.github.io/cadence/">
@@ -220,7 +220,7 @@ cadence/
 
 ### 📦 Quick Install (Unpacked Extension)
 
-1. Download the [cadence-1.0.0.zip](https://github.com/ichshakib/cadence/releases/download/v1.0.0/cadence-1.0.0.zip) archive directly or visit [Releases](https://github.com/ichshakib/cadence/releases).
+1. Download the [cadence-1.0.1.zip](https://github.com/ichshakib/cadence/releases/download/v1.0.1/cadence-1.0.1.zip) archive directly or visit [Releases](https://github.com/ichshakib/cadence/releases).
 2. Unpack the zip file (or point to `chrome-extension/dist`).
 3. Open Google Chrome and navigate to `chrome://extensions/`.
 4. Enable **"Developer mode"** in the top-right corner.
