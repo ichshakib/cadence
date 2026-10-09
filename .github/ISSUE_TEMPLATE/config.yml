@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 GitHub Discussions
+    url: https://github.com/ichshakib/cadence/discussions
+    about: Ask questions, share ideas, or discuss features with the community.
+  - name: 🌐 Official Showcase Website
+    url: https://ichshakib.github.io/cadence/
+    about: Visit the official Cadence landing page and live interactive demo.
