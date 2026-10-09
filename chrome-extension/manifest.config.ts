@@ -1,0 +1,48 @@
+import { defineManifest } from '@crxjs/vite-plugin'
+import pkg from './package.json' with { type: 'json' }
+
+export default defineManifest({
+  manifest_version: 3,
+  name: pkg.displayName || pkg.name,
+  description: pkg.description,
+  version: pkg.version,
+  icons: {
+    16: 'public/icons/icon16.png',
+    32: 'public/icons/icon32.png',
+    48: 'public/icons/icon48.png',
+    128: 'public/icons/icon128.png',
+  },
+  action: {
+    default_icon: {
+      16: 'public/icons/icon16.png',
+      32: 'public/icons/icon32.png',
+      48: 'public/icons/icon48.png',
+      128: 'public/icons/icon128.png',
+    },
+    default_title: 'Cadence - Bilingual YouTube Subtitles',
+  },
+  permissions: [
+    'sidePanel',
+    'contentSettings',
+    'storage',
+    'scripting',
+  ],
+  host_permissions: [
+    'https://translate.googleapis.com/*',
+    'https://*.youtube.com/*',
+    'https://youtube.com/*',
+  ],
+  background: {
+    service_worker: 'src/background/index.ts',
+    type: 'module',
+  },
+  content_scripts: [
+    {
+      js: ['src/content/main.tsx'],
+      matches: ['https://*.youtube.com/watch*', 'https://youtube.com/watch*'],
+    },
+  ],
+  side_panel: {
+    default_path: 'src/sidepanel/index.html',
+  },
+})
