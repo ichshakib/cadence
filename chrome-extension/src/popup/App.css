@@ -1,0 +1,215 @@
+/* Cadence Minimal Extension Popup */
+:root {
+  --pop-bg: #121214;
+  --pop-surface: #18181b;
+  --pop-border: rgba(255, 255, 255, 0.08);
+  --pop-text: #f4f4f5;
+  --pop-text-secondary: #a1a1aa;
+  --pop-text-muted: #71717a;
+  --pop-accent: #38bdf8;
+  --pop-accent-subtle: rgba(56, 189, 248, 0.1);
+  --pop-success: #10b981;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--pop-bg);
+  color: var(--pop-text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  width: 250px;
+  overflow: hidden;
+}
+
+.cadence-popup {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+/* Minimal Header */
+.popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--pop-border);
+  background: var(--pop-surface);
+}
+
+.popup-brand {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.popup-brand-icon {
+  color: var(--pop-accent);
+}
+
+.popup-brand-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--pop-text);
+  letter-spacing: -0.01em;
+}
+
+.popup-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--pop-text-muted);
+}
+
+.popup-status.active {
+  color: var(--pop-success);
+}
+
+.status-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: currentColor;
+}
+
+/* Body */
+.popup-body {
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Action Button */
+.popup-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 9px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  background: var(--pop-accent-subtle);
+  color: var(--pop-accent);
+  transition: all 0.15s ease;
+}
+
+.popup-btn:hover {
+  background: rgba(56, 189, 248, 0.18);
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+/* Form Field */
+.popup-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.popup-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--pop-text-secondary);
+}
+
+.popup-select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 5px 8px;
+  background: var(--pop-surface);
+  border: 1px solid var(--pop-border);
+  border-radius: 6px;
+  color: var(--pop-text);
+  font-size: 11px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.popup-select:focus {
+  border-color: var(--pop-accent);
+}
+
+/* Guide */
+.popup-guide {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 7px 8px;
+  background: var(--pop-surface);
+  border: 1px solid var(--pop-border);
+  border-radius: 6px;
+  font-size: 10px;
+  color: var(--pop-text-secondary);
+  line-height: 1.35;
+}
+
+.guide-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.guide-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--pop-text-muted);
+  font-size: 9px;
+  font-weight: 600;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.guide-item strong {
+  color: var(--pop-text);
+}
+
+.guide-item code {
+  background: rgba(255, 255, 255, 0.06);
+  padding: 1px 3px;
+  border-radius: 3px;
+  font-size: 9.5px;
+  color: var(--pop-accent);
+}
+
+/* Footer */
+.popup-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  border-top: 1px solid var(--pop-border);
+  font-size: 9.5px;
+  color: var(--pop-text-muted);
+  background: var(--pop-surface);
+}
+
+.footer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: none;
+  border: none;
+  color: var(--pop-text-secondary);
+  font-size: 9.5px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.footer-link:hover {
+  color: var(--pop-accent);
+}
